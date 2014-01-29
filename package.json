@@ -1,0 +1,12 @@
+{
+  "name": "node-threads",
+  "version": "0.0.1",
+  "author": {
+    "name": "Ivan Hall",
+    "email": "ivan.hall@gmail.com"
+  },
+  "license": "BSD",
+  "dependencies": {
+    "nan": "~0.8.0"
+  }
+}
