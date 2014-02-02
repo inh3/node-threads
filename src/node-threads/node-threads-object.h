@@ -12,21 +12,17 @@ using namespace node;
 class NodeThreads : public ObjectWrap
 {
     public:
-        
-        static void Init(Handle<Object> exports, Handle<Object> module);
-        static NAN_METHOD(NewInstance);
 
+        static NAN_METHOD(New);
         static NAN_METHOD(Test);
+
+        static Persistent<Function> Constructor;
+        static Persistent<Function> EventEmitter;
     
     private:
 
         explicit NodeThreads();
         ~NodeThreads();
-
-        static NAN_METHOD(New);
-
-        static Persistent<Function> Constructor;
-        static Persistent<Function> EventEmitter;
 };
 
 #endif /* _NODE_THREADS_OBJECT_H_ */

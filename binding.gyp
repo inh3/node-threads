@@ -7,6 +7,7 @@
         'sources': [
             'node-threads.cc',
             'src/node-threads/node-threads-object.cc',
+            'src/node-threads/node-threads-factory.cc',
             'src/file/file_info.cc',
             'src/utilities/utilities.cc'
         ],
