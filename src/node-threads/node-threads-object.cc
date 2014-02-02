@@ -1,3 +1,5 @@
+#define _NODE_THREADS_OBJECT_CC_
+
 #include "node-threads-object.h"
 
 #include <v8.h>
@@ -37,10 +39,15 @@ void NodeThreads::Init(Handle<Object> exports, Handle<Object> module)
     functionTemplate->SetClassName(String::NewSymbol("NodeThreads"));
     functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+    // inherit from event emitter
+    args[0] = { String::New("util") };
+    Local<Object> utilModule = requireFunction->Call(module, 1, args)->ToObject();
+    Local<Function> inheritsFunction = utilModule->Get(String::NewSymbol("inherits")).As<Function>();
+    Local<Value> inheritArgs[] = { functionTemplate->GetFunction(), NanPersistentToLocal(NodeThreads::EventEmitter) };
+    inheritsFunction->Call(module, 2, inheritArgs);
+
     // expose the constructor
     NanAssignPersistent(Function, NodeThreads::Constructor, functionTemplate->GetFunction());
-    Local<Function> constructorFunction = NanPersistentToLocal(NodeThreads::Constructor);
-    module->Set(String::NewSymbol("exports"), constructorFunction);
 }
 
 NAN_METHOD(NodeThreads::New)
@@ -65,6 +72,17 @@ NAN_METHOD(NodeThreads::New)
     }
 
     NanReturnUndefined();
+}
+
+NAN_METHOD(NodeThreads::NewInstance)
+{
+    NanScope();
+
+    const unsigned argc = 1;
+    Handle<Value> argv[argc] = { args[0] };
+    Local<Object> newInstance = NanPersistentToLocal(NodeThreads::Constructor)->NewInstance(argc, argv);
+
+    NanReturnValue(newInstance);
 }
 
 NAN_METHOD(NodeThreads::Test)

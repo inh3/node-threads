@@ -14,6 +14,7 @@ class NodeThreads : public ObjectWrap
     public:
         
         static void Init(Handle<Object> exports, Handle<Object> module);
+        static NAN_METHOD(NewInstance);
 
         static NAN_METHOD(Test);
     

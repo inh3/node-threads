@@ -7,12 +7,14 @@
         'sources': [
             'node-threads.cc',
             'src/node-threads/node-threads-object.cc',
+            'src/file/file_info.cc',
             'src/utilities/utilities.cc'
         ],
 
         'include_dirs': [
             './src',
             './src/node-threads',
+            './src/file',
             './src/utilities',
             '<!(node -e \"require(\'nan\')\")'
         ],
