@@ -13,7 +13,10 @@ using namespace node;
 
 NodeThreads::NodeThreads() {}
 
-NodeThreads::~NodeThreads() {}
+NodeThreads::~NodeThreads()
+{
+    printf("NodeThreads::~NodeThreads\n");
+}
 
 // Node -----------------------------------------------------------------------
 
@@ -23,6 +26,8 @@ Persistent<Function> NodeThreads::EventEmitter;
 NAN_METHOD(NodeThreads::New)
 {
     NanScope();
+
+    printf("***********\n");
 
     if (args.IsConstructCall())
     {

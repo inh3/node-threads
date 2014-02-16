@@ -18,6 +18,11 @@ class NodeThreads : public ObjectWrap
 
         static Persistent<Function> Constructor;
         static Persistent<Function> EventEmitter;
+
+        // provide public access to Node's ObjectWrap
+        // Ref() and Unref() functions for use by the factory
+        virtual void Ref() { ObjectWrap::Ref(); }
+        virtual void Unref() { ObjectWrap::Unref(); }
     
     private:
 

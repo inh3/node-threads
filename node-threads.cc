@@ -9,33 +9,69 @@ using namespace node;
 // node threads
 #include "node-threads-factory.h"
 
+/**
+ * Creates a thread pool instance.
+ *
+ * Throws an exception if parameters are invalid and/or missing.
+ * 
+ * @param[in] threadPoolName    name Name of thread pool
+ * @param[in] numThreads        Number of threads within thread pool
+ *
+ * @return Instance of a thread pool object
+ */
 NAN_METHOD(CreateThreadPool)
 {
     NanScope();
 
-    // must be: 1-2 arguments
-    // 1) thread pool name
-    // 2) number of threads
-    if((args.Length() > 2) || (args.Length() < 1) ||
-        ((args.Length() == 2) && (!args[0]->IsString() || !args[1]->IsNumber())) ||
-        ((args.Length() == 1) && !args[0]->IsString()))
+    // verify parameters being passed to function
+    if((args.Length() == 2 && args[0]->IsString() && args[1]->IsNumber()) ||
+       (args.Length() == 1 && args[0]->IsString()))
     {
-        ThrowException(Exception::TypeError(
-            String::New("Invalid parameters passed to 'createThreadPool(...)'\n")));
-        NanReturnUndefined();
+        // get reference to factory method
+        Local<FunctionTemplate> instanceTemplate = FunctionTemplate::New(NodeThreadsFactory::CreateInstance);
+        Local<Function> instanceFunction = instanceTemplate->GetFunction();
+
+        // create a new instance with parameters passed in
+        Handle<Value> argv[2] = { args[0], args[1] };
+        Local<Value> newInstance = instanceFunction->Call(args.This(), args.Length(), argv);
+        
+        // return the new instance to caller
+        NanReturnValue(newInstance);
     }
 
-    // get reference to factory method
-    Local<FunctionTemplate> instanceTemplate = FunctionTemplate::New(NodeThreadsFactory::NewInstance);
-    Local<Function> instanceFunction = instanceTemplate->GetFunction();
+    ThrowException(Exception::TypeError(String::New("Invalid parameters passed to 'createThreadPool(...)'\n")));
+    NanReturnUndefined();
+}
 
-    // create a new instance with parameters passed in
-    Handle<Value> argv[args.Length()];
-    for(int i = 0; i < args.Length(); i++) { argv[i] = args[i]; }
-    Local<Value> newInstance = instanceFunction->Call(args.This(), args.Length(), argv);
-    
-    // return the new instance to caller
-    NanReturnValue(newInstance);
+/**
+ * Destroys a thread pool instance
+ *
+ * Throws an exception if parameter is invalid and/or missing.
+ * 
+ * @param[in] threadPoolName    name Name of thread pool
+ *
+ * @return Thread pool instance
+ */
+NAN_METHOD(DestroyThreadPool)
+{
+    NanScope();
+
+    // verify parameters being passed to function
+    if(args.Length() == 1 && args[0]->IsString())
+    {
+        // get reference to factory method
+        Local<FunctionTemplate> destroyTemplate = FunctionTemplate::New(NodeThreadsFactory::DestroyInstance);
+        Local<Function> destroyFunction = destroyTemplate->GetFunction();
+
+        // create a new instance with parameters passed in
+        Handle<Value> argv[] = { args[0] };
+        Local<Value> threadPoolDestroyed = destroyFunction->Call(args.This(), args.Length(), argv);
+
+        NanReturnValue(threadPoolDestroyed);
+    }
+
+    ThrowException(Exception::TypeError(String::New("Invalid parameter passed to 'destroyThreadPool(...)'\n")));
+    NanReturnUndefined();
 }
 
 void init(Handle<Object> exports, Handle<Object> module)
@@ -44,6 +80,9 @@ void init(Handle<Object> exports, Handle<Object> module)
 
     exports->Set(NanSymbol("createThreadPool"),
         FunctionTemplate::New(CreateThreadPool)->GetFunction());
+
+    exports->Set(NanSymbol("destroyThreadPool"),
+        FunctionTemplate::New(DestroyThreadPool)->GetFunction());
 }
 
 NODE_MODULE(node_threads, init);
