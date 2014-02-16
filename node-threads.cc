@@ -32,7 +32,7 @@ NAN_METHOD(CreateThreadPool)
         Local<Function> instanceFunction = instanceTemplate->GetFunction();
 
         // create a new instance with parameters passed in
-        Handle<Value> argv[2] = { args[0], args[1] };
+        Handle<Value> argv[] = { args[0], args[1] };
         Local<Value> newInstance = instanceFunction->Call(args.This(), args.Length(), argv);
         
         // return the new instance to caller

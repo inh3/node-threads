@@ -17,7 +17,12 @@
             './src/node-threads',
             './src/file',
             './src/utilities',
+            './src/threadpool',
             '<!(node -e \"require(\'nan\')\")'
+        ],
+
+        'dependencies': [
+            'threadpool'
         ],
 
         'conditions': [
@@ -30,6 +35,40 @@
                 'cflags': [
                     '-std=c++11',
                     '-stdlib=libc++'
+                ]
+            }]
+        ]
+    },
+
+    # thread pool library
+    {
+        'target_name': 'threadpool',
+        'type': 'static_library',
+
+        'include_dirs': [
+            './src/threadpool'
+        ],
+
+        'sources': [
+            './src/threadpool/synchronize.c',
+            './src/threadpool/task_queue.c',
+            './src/threadpool/thread_pool.c'
+        ],
+
+        'conditions': [
+            ['OS=="win"', {
+                'defines': [
+                    '_WIN32'
+                ]
+            }],
+            ['OS=="linux"', {
+                'ldflags': [
+                    '-pthread'
+                ]
+            }],
+            ['OS=="mac"', {
+                'ldflags': [
+                    '-pthread'
                 ]
             }]
         ]

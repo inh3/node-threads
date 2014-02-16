@@ -20,7 +20,7 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
     NanScope();
 
     // store reference to event emitter
-    Local<Function> requireFunction = NanNewLocal<Function>(module->Get(String::NewSymbol("require")).As<Function>());    
+    Local<Function> requireFunction = NanNewLocal<Function>(module->Get(String::NewSymbol("require")).As<Function>());
     Local<Value> args[] = { String::New("events") };
     Local<Object> eventsModule = requireFunction->Call(module, 1, args)->ToObject();
     NanAssignPersistent(
@@ -28,10 +28,38 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
         NodeThreads::EventEmitter, 
         eventsModule->Get(String::NewSymbol("EventEmitter")).As<Function>());
 
-    // prepare the constructor function template    
+    // store number of cpu cores
+    args[0] = String::New("os");
+    Local<Object> osModule = requireFunction->Call(module, 1, args)->ToObject();
+    Local<Function> cpuFunction = osModule->Get(String::NewSymbol("cpus")).As<Function>();
+    Local<Array> cpuArray = cpuFunction->Call(module, 0, NULL).As<Array>();
+    NanAssignPersistent(
+        Value,
+        NodeThreads::NumCPUs,
+        Uint32::NewFromUnsigned((cpuArray->Length() > 2 ? cpuArray->Length() - 1 : 2)));
+
+    // prepare the constructor function template
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(NodeThreads::New);
     constructorTemplate->SetClassName(String::NewSymbol("NodeThread"));
     constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // set accessors for read-only properties
+    // http://v8.googlecode.com/svn/trunk/test/cctest/test-accessors.cc
+    constructorTemplate->InstanceTemplate()->SetAccessor(
+        String::NewSymbol("threadPoolKey"),
+        NodeThreads::GetThreadPoolKey,
+        0,
+        v8::Handle<Value>(),
+        v8::PROHIBITS_OVERWRITING,
+        v8::ReadOnly);
+
+    constructorTemplate->InstanceTemplate()->SetAccessor(
+        String::NewSymbol("numThreads"),
+        NodeThreads::GetNumThreads,
+        0,
+        Handle<Value>(),
+        v8::PROHIBITS_OVERWRITING,
+        v8::ReadOnly);
 
     // inherit from event emitter
     args[0] = String::New("util");
@@ -62,9 +90,16 @@ NAN_METHOD(NodeThreadsFactory::CreateInstance)
         NanReturnValue(NanObjectWrapHandle(nodeThreadInstance->second));
     }
 
-    // create the new instance of node threads
-    const unsigned argc = 1;
-    Handle<Value> argv[argc] = { args[0] };
+    // can have up to two arguments
+    uint32_t argc = 0;
+    Handle<Value> argv[2];
+    for(int i = 0; i < args.Length(); i++)
+    {
+        argv[i] = args[i];
+        argc++;
+    }
+
+    // create instance
     Local<Object> newInstance = NanPersistentToLocal(NodeThreads::Constructor)->NewInstance(argc, argv);
 
     // add the node threads instance to the hash map for lookup next time

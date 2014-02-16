@@ -11,7 +11,12 @@ using namespace node;
 
 // Instance -------------------------------------------------------------------
 
-NodeThreads::NodeThreads() {}
+NodeThreads::NodeThreads(string threadPoolKey, uint32_t numThreads)
+{
+    _ThreadPoolKey = threadPoolKey;
+    _NumThreads = numThreads;
+    printf("[ %s ] %u\n", _ThreadPoolKey.c_str(), _NumThreads);
+}
 
 NodeThreads::~NodeThreads()
 {
@@ -22,38 +27,54 @@ NodeThreads::~NodeThreads()
 
 Persistent<Function> NodeThreads::Constructor;
 Persistent<Function> NodeThreads::EventEmitter;
+Persistent<Value> NodeThreads::NumCPUs;
 
 NAN_METHOD(NodeThreads::New)
 {
     NanScope();
 
-    printf("***********\n");
-
     if (args.IsConstructCall())
     {
         // add instance function properties
-        args.This()->Set(String::NewSymbol("testMethod"),
-            FunctionTemplate::New(Test)->GetFunction());
+        /*args.This()->Set(String::NewSymbol("testMethod"),
+            FunctionTemplate::New(Test)->GetFunction());*/
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
         Local<Function> eventEmitter = NanPersistentToLocal(NodeThreads::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
+        // get the unique name param of the node thread instance
+        String::Utf8Value threadPoolName(args[0]->ToString());
+        string threadPoolKey(*threadPoolName);
+
+        // get number of threads
+        Local<Value> numCpus = NanPersistentToLocal(NodeThreads::NumCPUs);
+        uint32_t numThreads = numCpus->Uint32Value();
+        if(args.Length() == 2)
+        {
+            numThreads = args[1]->Uint32Value();
+        }
+
         // wrap the class and return the javascript object
-        NodeThreads* nodeThreads = new NodeThreads();
-        nodeThreads->Wrap(args.This());
+        NodeThreads* nodeThread = new NodeThreads(threadPoolKey, numThreads);
+        nodeThread->Wrap(args.This());
         NanReturnValue(args.This());
     }
 
     NanReturnUndefined();
 }
 
-NAN_METHOD(NodeThreads::Test)
+NAN_GETTER(NodeThreads::GetThreadPoolKey)
 {
     NanScope();
+    NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
+    NanReturnValue(String::New(nodeThread->_ThreadPoolKey.c_str()));
+}
 
-    Local<String> testString = NanNewLocal<String>(String::New("NodeThreads::Test"));
-
-    NanReturnValue(testString);
+NAN_GETTER(NodeThreads::GetNumThreads)
+{
+    NanScope();
+    NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
+    NanReturnValue(Integer::New(nodeThread->_NumThreads));
 }
