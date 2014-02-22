@@ -10,16 +10,18 @@ using namespace node;
 #include "node-threads-factory.h"
 
 /**
- * Creates a thread pool instance.
+ * Gets or creates a thread pool instance.
  *
+ * Gets a thread pool by name, or creates one if it doesn't exist.
+ * 
  * Throws an exception if parameters are invalid and/or missing.
  * 
  * @param[in] threadPoolName    name Name of thread pool
  * @param[in] numThreads        Number of threads within thread pool
  *
- * @return Instance of a thread pool object
+ * @return An instance of a thread pool object
  */
-NAN_METHOD(CreateThreadPool)
+NAN_METHOD(GetThreadPool)
 {
     NanScope();
 
@@ -39,20 +41,20 @@ NAN_METHOD(CreateThreadPool)
         NanReturnValue(newInstance);
     }
 
-    ThrowException(Exception::TypeError(String::New("Invalid parameters passed to 'createThreadPool(...)'\n")));
+    ThrowException(Exception::TypeError(String::New("Invalid parameter(s) passed to 'createThreadPool(...)'\n")));
     NanReturnUndefined();
 }
 
 /**
- * Destroys a thread pool instance
+ * Deletes a thread pool instance.
  *
  * Throws an exception if parameter is invalid and/or missing.
  * 
  * @param[in] threadPoolName    name Name of thread pool
  *
- * @return Thread pool instance
+ * @return True if a thread pool was deleted, false if not
  */
-NAN_METHOD(DestroyThreadPool)
+NAN_METHOD(DeleteThreadPool)
 {
     NanScope();
 
@@ -70,7 +72,7 @@ NAN_METHOD(DestroyThreadPool)
         NanReturnValue(threadPoolDestroyed);
     }
 
-    ThrowException(Exception::TypeError(String::New("Invalid parameter passed to 'destroyThreadPool(...)'\n")));
+    ThrowException(Exception::TypeError(String::New("Invalid parameter passed to 'deleteThreadPool(...)'\n")));
     NanReturnUndefined();
 }
 
@@ -78,11 +80,11 @@ void init(Handle<Object> exports, Handle<Object> module)
 {
     NodeThreadsFactory::Init(exports, module);
 
-    exports->Set(NanSymbol("createThreadPool"),
-        FunctionTemplate::New(CreateThreadPool)->GetFunction());
+    exports->Set(NanSymbol("getThreadPool"),
+        FunctionTemplate::New(GetThreadPool)->GetFunction());
 
-    exports->Set(NanSymbol("destroyThreadPool"),
-        FunctionTemplate::New(DestroyThreadPool)->GetFunction());
+    exports->Set(NanSymbol("deleteThreadPool"),
+        FunctionTemplate::New(DeleteThreadPool)->GetFunction());
 }
 
 NODE_MODULE(node_threads, init);

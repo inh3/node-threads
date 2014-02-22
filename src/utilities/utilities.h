@@ -10,7 +10,9 @@ class Utilities
 {
     public:
 
-        static void     PrintObjectProperties(Handle<Object> objectHandle);
+        static void             PrintObjectProperties(Handle<Object> objectHandle);
+
+        static Handle<Value>    CompileScriptSource(Handle<String> scriptSource, const char* scriptResourceName = NULL);
 };
 
 #endif /* _UTILITIES_H_ */

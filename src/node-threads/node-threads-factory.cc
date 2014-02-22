@@ -49,7 +49,7 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
         String::NewSymbol("threadPoolKey"),
         NodeThreads::GetThreadPoolKey,
         0,
-        v8::Handle<Value>(),
+        Handle<Value>(),
         v8::PROHIBITS_OVERWRITING,
         v8::ReadOnly);
 
@@ -128,6 +128,7 @@ NAN_METHOD(NodeThreadsFactory::DestroyInstance)
         // remove the instance and unreference it
         NodeThreadsFactory::_NodeThreadMap.erase(nodeThreadKey);
         NodeThreads *nodeThread = nodeThreadInstance->second;
+        nodeThread->Destroy();
         nodeThread->Unref();
         NanReturnValue(Boolean::New(true));
     }

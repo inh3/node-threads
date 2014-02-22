@@ -35,14 +35,20 @@ class NodeThreads : public ObjectWrap
         // Ref() and Unref() functions for use by the factory
         virtual void Ref() { ObjectWrap::Ref(); }
         virtual void Unref() { ObjectWrap::Unref(); }
-    
+
+        void Destroy();
+        void QueueFunctionWorkItem();
+
     private:
 
         explicit NodeThreads(string threadPoolKey, uint32_t numThreads);
         ~NodeThreads();
 
+        static NAN_METHOD(ExecuteFunction);
+
         string                  _ThreadPoolKey;
         uint32_t                _NumThreads;
+        bool                    _Destroyed;
 
         THREAD_POOL_DATA        *_ThreadPool;
         TASK_QUEUE_DATA         *_TaskQueue;

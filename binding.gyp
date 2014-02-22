@@ -8,14 +8,22 @@
             'node-threads.cc',
             'src/node-threads/node-threads-object.cc',
             'src/node-threads/node-threads-factory.cc',
+
             'src/file/file_info.cc',
-            'src/utilities/utilities.cc'
+
+            'src/thread/thread.cc',
+            'src/thread/work-item.cc',
+            'src/thread/function-work-item.cc',
+            
+            'src/utilities/utilities.cc',
+            'src/utilities/error-handling.cc'
         ],
 
         'include_dirs': [
             './src',
             './src/node-threads',
             './src/file',
+            './src/thread',
             './src/utilities',
             './src/threadpool',
             '<!(node -e \"require(\'nan\')\")'
