@@ -1,6 +1,14 @@
 #ifndef _WORK_ITEM_H_
 #define _WORK_ITEM_H_
 
+// node
+#include <node.h>
+#include <node_version.h>
+#include <v8.h>
+using namespace v8;
+
+#include "nan.h"
+
 // threadpool
 #include "task_queue.h"
 
@@ -11,7 +19,7 @@ class WorkItem
         WorkItem();
         virtual ~WorkItem();
 
-        virtual void*   InstanceWorkFunction() = 0;
+        virtual void*   InstanceWorkFunction(const Isolate* isolate) = 0;
         virtual void    InstanceWorkCallback() = 0;
 
         static void*    WorkFunction(

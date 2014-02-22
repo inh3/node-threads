@@ -11,12 +11,17 @@
 
 void Utilities::PrintObjectProperties(Handle<Object> objectHandle)
 {
-    Local<Array> propertyKeys = (*objectHandle)->GetPropertyNames();
+    Local<Array> propertyKeys = objectHandle->GetPropertyNames();
     for (uint32_t keyIndex = 0; keyIndex < propertyKeys->Length(); keyIndex++)
     {
         Handle<v8::String> keyString = propertyKeys->Get(keyIndex)->ToString();
-        String::AsciiValue propertyName(keyString);
-        fprintf(stdout, "[ Property %u ] %s\n", keyIndex, *propertyName);
+        
+        String::Utf8Value propertyName(keyString);
+        String::Utf8Value propertyValue(objectHandle->Get(keyString)->ToString());
+        fprintf(stdout, "[ Property %u ] %s - %s\n",
+            keyIndex,
+            *propertyName,
+            *propertyValue);
     }
 }
 
@@ -26,6 +31,8 @@ Handle<Value> Utilities::CompileScriptSource(Handle<String> scriptSource, const 
 
     Handle<Value> scriptResult;
     Handle<Script> compiledScript;
+
+    // create compiled script
     if(scriptResourceName != NULL)
     {
         compiledScript = Script::New(scriptSource, String::New(scriptResourceName));

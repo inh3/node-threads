@@ -2,27 +2,16 @@
 
 #include "thread.h"
 
+// node
+#include <node_version.h>
+
 // C
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// libuv/node
-#include <uv.h>
-#include <node.h>
-#include <v8.h>
-using namespace v8;
-
-typedef struct thread_context_s
-{
-    // libuv
-    uv_async_t*             uv_async_ptr;
-
-    // v8
-    Isolate*                thread_isolate;
-    Persistent<Context>     thread_context;
-
-} thread_context_t;
+// custom
+#include "thread-isolate.h"
 
 void* Thread::ThreadInit()
 {
@@ -43,13 +32,70 @@ void* Thread::ThreadInit()
 
 void Thread::ThreadPostInit(void* threadContext)
 {
-    
+    // get reference to the thread context
+    thread_context_t* thisContext = (thread_context_t*)threadContext;
+
+    // get reference to thread isolate
+    Isolate* isolate = thisContext->thread_isolate;
+    {
+        // lock the isolate
+        Locker isolateLocker(isolate);
+
+        // enter the isolate
+        isolate->Enter();
+
+// Node 0.11+ (0.11.3 and below won't compile with these)
+#if (NODE_MODULE_VERSION > 0x000B)
+        HandleScope handleScope(isolate);
+
+        // create a isolate context for the javascript in this thread
+        NanAssignPersistent(Context, thisContext->isolate_context, Context::New(isolate));
+
+        // enter thread specific context
+        Context::Scope contextScope(isolate, thisContext->isolate_context);
+
+        // get usable handle to the context's object
+        Local<Object> globalContext = Local<Context>::New(isolate, thisContext->isolate_context)->Global();
+#else
+        HandleScope handleScope;
+
+        // create a isolate context for the javascript in this thread
+        Persistent<Context> isolateContext(Context::New());
+        thisContext->isolate_context = isolateContext;
+
+        // enter thread specific context
+        Context::Scope contextScope(thisContext->isolate_context);
+
+        // get usable handle to the context's object
+        Handle<Object> globalContext = thisContext->isolate_context->Global();
+#endif
+        ThreadIsolate::InitializeGlobalContext(isolate, globalContext);
+    }
+
+    // leave the isolate
+    isolate->Exit();
 }
 
 void Thread::ThreadDestroy(void* threadContext)
 {
     // thread context
     thread_context_t* thisContext = (thread_context_t*)threadContext;
+
+    // get reference to thread isolate
+    Isolate* isolate = thisContext->thread_isolate;
+    {
+        // lock the isolate
+        Locker myLocker(isolate);
+
+        // enter the isolate
+        isolate->Enter();
+
+        // dispose of js context
+        thisContext->isolate_context.Dispose();
+    }
+
+    // exit the isolate
+    isolate->Exit();
 
     // dispose of the isolate
     thisContext->thread_isolate->Dispose();

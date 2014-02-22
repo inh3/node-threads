@@ -1,8 +1,24 @@
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
-// libuv
+// libuv/node
 #include <uv.h>
+#include <node.h>
+#include <v8.h>
+using namespace v8;
+
+#include "nan.h"
+
+typedef struct thread_context_s
+{
+    // libuv
+    uv_async_t*             uv_async_ptr;
+
+    // v8
+    Isolate*                thread_isolate;
+    Persistent<Context>     isolate_context;
+
+} thread_context_t;
 
 class Thread
 {

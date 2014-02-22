@@ -12,6 +12,7 @@
             'src/file/file_info.cc',
 
             'src/thread/thread.cc',
+            'src/thread/thread-isolate.cc',
             'src/thread/work-item.cc',
             'src/thread/function-work-item.cc',
             

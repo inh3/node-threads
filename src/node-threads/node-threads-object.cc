@@ -54,9 +54,9 @@ void NodeThreads::Destroy()
     DestroyTaskQueue(_TaskQueue);
 }
 
-void NodeThreads::QueueFunctionWorkItem()
+void NodeThreads::QueueFunctionWorkItem(const char* functionString)
 {
-    FunctionWorkItem* functionWorkItem = new FunctionWorkItem();
+    FunctionWorkItem* functionWorkItem = new FunctionWorkItem(functionString);
 
     // reference to task queue item to be added
     TASK_QUEUE_ITEM     *taskQueueItem = 0;
@@ -141,19 +141,32 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
 {
     NanScope();
 
-    Handle<Function> functionToExecute;
+    Handle<String> funcStrHandle;
 
     if((args.Length() == 2) 
         && (args[0]->IsFunction() || args[0]->IsString())
         && (args[1]->IsFunction()))
     {
-        printf("Good parameters!\n");
-        NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
-        nodeThread->QueueFunctionWorkItem();
+        if(args[0]->IsFunction())
+        {
+            funcStrHandle = args[0].As<Function>()->ToString();
+        }
+        else if(args[0]->IsString())
+        {
+            funcStrHandle = args[0].As<String>();
+        }
+    }
+    
+    if(funcStrHandle.IsEmpty())
+    {
+        ThrowException(Exception::TypeError(String::New("Invalid parameter(s) passed to 'executeFunction(...)'\n")));
     }
     else
     {
-        ThrowException(Exception::TypeError(String::New("Invalid parameter(s) passed to 'executeFunction(...)'\n")));
+        NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
+
+        String::Utf8Value funcStrValue(funcStrHandle);
+        nodeThread->QueueFunctionWorkItem(*funcStrValue);
     }
 
     NanReturnUndefined();
