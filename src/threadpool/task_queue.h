@@ -61,9 +61,6 @@ typedef struct TASK_QUEUE_ITEM_STRUCT
     // reference to work item context (this will be passed to the work item function)
     void            *taskItemData;
 
-    // size (bytes) of the work item context
-    unsigned int    dataSize;
-
     // id of task
     unsigned int    taskId;
 

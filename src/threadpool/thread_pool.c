@@ -143,10 +143,6 @@ static THREAD_FUNC threadFunction(void *threadArg)
                 taskQueueItem->taskItemCallback(threadData->taskQueueWorkData, threadData->context, taskData);
             }
 
-            // release the task item data memory
-            free(taskQueueItem->taskItemData);
-            taskQueueItem->taskItemData = 0;
-
             // release the task item memory
             free(taskQueueItem);
             taskQueueItem = 0;

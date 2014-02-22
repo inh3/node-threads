@@ -88,10 +88,6 @@ static TASK_QUEUE_NODE* CreateQueueNode(TASK_QUEUE_ITEM *taskQueueItem)
 
 static void FreeQueueNode(TASK_QUEUE_NODE *queueNode)
 {
-    // release the task item data memory
-    free(queueNode->taskQueueItem->taskItemData);
-    queueNode->taskQueueItem->taskItemData = 0;
-
     // release the task item memory
     free(queueNode->taskQueueItem);
     queueNode->taskQueueItem = 0;
@@ -258,8 +254,6 @@ TASK_QUEUE_ITEM* GetTaskQueueItem(TASK_QUEUE_DATA *taskQueueData)
         // copy task queue item to return
         taskQueueItem = (TASK_QUEUE_ITEM*)malloc(sizeof(TASK_QUEUE_ITEM));
         memcpy(taskQueueItem, queueNode->taskQueueItem, sizeof(TASK_QUEUE_ITEM));
-        taskQueueItem->taskItemData = malloc(queueNode->taskQueueItem->dataSize);
-        memcpy(taskQueueItem->taskItemData, queueNode->taskQueueItem->taskItemData, queueNode->taskQueueItem->dataSize);
 
         // update head node
         taskQueueData->taskQueue->queueHead = queueNode->nextNode;

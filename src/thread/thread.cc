@@ -34,7 +34,6 @@ void* Thread::ThreadInit()
     threadContext->uv_async_ptr = (uv_async_t*)malloc(sizeof(uv_async_t));
     memset(threadContext->uv_async_ptr, 0, sizeof(uv_async_t));
     uv_async_init(uv_default_loop(), threadContext->uv_async_ptr, NULL);
-    //threadContext->uvAsync->close_cb = Thread::uvCloseCallback;
 
     // create thread isolate
     threadContext->thread_isolate = Isolate::New();
@@ -56,8 +55,14 @@ void Thread::ThreadDestroy(void* threadContext)
     thisContext->thread_isolate->Dispose();
 
     //uv_unref((uv_handle_t*)thisContext->uvAsync);
-    uv_close((uv_handle_t*)thisContext->uv_async_ptr, NULL);
+    uv_close((uv_handle_t*)thisContext->uv_async_ptr, Thread::AsyncCloseCallback);
 
     // release the thread context memory
     free(thisContext);
+}
+
+void Thread::AsyncCloseCallback(uv_handle_t* handle)
+{
+    // cleanup the handle
+    free(handle);
 }

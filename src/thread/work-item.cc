@@ -18,7 +18,9 @@ void* WorkItem::WorkFunction(
     void *workItemPtr)
 {
     WorkItem* workItem = (WorkItem*)workItemPtr;
-    return workItem->InstanceWorkFunction();
+    workItem->InstanceWorkFunction();
+
+    return workItem;
 }
 
 void WorkItem::WorkCallback(
@@ -27,5 +29,7 @@ void WorkItem::WorkCallback(
     void *workItemPtr)
 {
     WorkItem* workItem = (WorkItem*)workItemPtr;
-    return workItem->InstanceWorkCallback();
+    workItem->InstanceWorkCallback();
+
+    delete workItem;
 }

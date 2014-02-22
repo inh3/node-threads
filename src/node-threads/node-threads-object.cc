@@ -56,7 +56,7 @@ void NodeThreads::Destroy()
 
 void NodeThreads::QueueFunctionWorkItem()
 {
-    FunctionWorkItem* functionWorkItemPtr = new FunctionWorkItem();
+    FunctionWorkItem* functionWorkItem = new FunctionWorkItem();
 
     // reference to task queue item to be added
     TASK_QUEUE_ITEM     *taskQueueItem = 0;
@@ -64,12 +64,9 @@ void NodeThreads::QueueFunctionWorkItem()
     // create task queue item object
     taskQueueItem = (TASK_QUEUE_ITEM*)malloc(sizeof(TASK_QUEUE_ITEM));
     memset(taskQueueItem, 0, sizeof(TASK_QUEUE_ITEM));
-    
-    // set the data size
-    taskQueueItem->dataSize = sizeof(functionWorkItemPtr);
 
     // store reference to work item
-    taskQueueItem->taskItemData = (void*)(&functionWorkItemPtr);
+    taskQueueItem->taskItemData = (void*)functionWorkItem;
 
     // set the task item work function
     taskQueueItem->taskItemFunction = WorkItem::WorkFunction;
@@ -151,8 +148,8 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         && (args[1]->IsFunction()))
     {
         printf("Good parameters!\n");
-        //NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
-        //nodeThread->QueueFunctionWorkItem();
+        NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
+        nodeThread->QueueFunctionWorkItem();
     }
     else
     {
