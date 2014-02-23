@@ -18,9 +18,9 @@ NAN_METHOD(Require::RequireMethod)
 
         // Node 0.11+ (0.11.3 and below won't compile with these)
 #if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope handleScope(isolate);
+    HandleScope scope(isolate);
 #else
-    HandleScope handleScope;
+    HandleScope scope;
 #endif
 
     printf("Require Function!\n");

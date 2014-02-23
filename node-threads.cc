@@ -79,17 +79,30 @@ NAN_METHOD(DeleteThreadPool)
     NanReturnUndefined();
 }
 
-void init(Handle<Object> exports, Handle<Object> module)
+NAN_METHOD(SubStack)
 {
-    ThreadIsolate::Initialize();
+    NanScope();
 
-    NodeThreadsFactory::Init(exports, module);
+    // get ref to the file and dir name of module
+    String::Utf8Value dirString(args[0]->ToString());
 
-    exports->Set(NanSymbol("getThreadPool"),
+    ThreadIsolate::Initialize(*dirString);
+
+    Local<Object> nodeThreadsModule = Object::New();
+    nodeThreadsModule->Set(NanSymbol("getThreadPool"),
         FunctionTemplate::New(GetThreadPool)->GetFunction());
 
-    exports->Set(NanSymbol("deleteThreadPool"),
+    nodeThreadsModule->Set(NanSymbol("deleteThreadPool"),
         FunctionTemplate::New(DeleteThreadPool)->GetFunction());
+
+    NanReturnValue(nodeThreadsModule);
+}
+
+void init(Handle<Object> exports, Handle<Object> module)
+{
+    NodeThreadsFactory::Init(exports, module);
+
+    module->Set(String::NewSymbol("exports"), FunctionTemplate::New(SubStack)->GetFunction());
 }
 
 NODE_MODULE(node_threads, init);

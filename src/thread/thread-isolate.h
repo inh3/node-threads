@@ -9,6 +9,10 @@ using namespace v8;
 
 #include "nan.h"
 
+// C++
+#include <string>
+using namespace std;
+
 // custom
 #include "file_info.h"
 
@@ -17,7 +21,7 @@ class ThreadIsolate
     public:
 
         // this should only be called once at module init
-        static void     Initialize();
+        static void     Initialize(const char* dirString);
 
         // global context (per thread)
         static void     InitializeGlobalContext();
@@ -27,10 +31,20 @@ class ThreadIsolate
                             Handle<Object> sourceObject,
                             Handle<Object> cloneObject);
 
+        static void     CreateModuleContext(
+                            Handle<Object> contextObject,
+                            const FileInfo* fileInfo);
+
+        static void     UpdateContextFileGlobals(
+                            Handle<Object> contextObject,
+                            const FileInfo* fileInfo);
+
     private:
 
         static bool         _IsInitialized;
         static FileInfo     _UtilFile;
+
+        static string       _ModuleDir;
 };
 
 #endif /* _THREAD_ISOLATE_H_ */

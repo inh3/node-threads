@@ -12,15 +12,17 @@
 
 bool ThreadIsolate::_IsInitialized = false;
 FileInfo ThreadIsolate::_UtilFile;
+string ThreadIsolate::_ModuleDir;
 
 // this should only be called from main thread
-void ThreadIsolate::Initialize()
+void ThreadIsolate::Initialize(const char* dirString)
 {
     // make sure to only initialize once
     if(_IsInitialized == false)
     {
         _IsInitialized = true;
 
+        _ModuleDir.assign(dirString);
         _UtilFile.LoadFile("./src/js/util.js");
 
         Process::Initialize();
@@ -98,4 +100,30 @@ void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Objec
     cloneObject->Set(String::NewSymbol("console"), sourceObject->Get(String::NewSymbol("console")));
     cloneObject->Set(String::NewSymbol("process"), sourceObject->Get(String::NewSymbol("process")));
     cloneObject->Set(String::NewSymbol("require"), sourceObject->Get(String::NewSymbol("require")));
+}
+
+void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const FileInfo* fileInfo)
+{
+    NanScope();
+
+    // create the module/exports within context
+    Handle<Object> moduleObject = Object::New();
+    moduleObject->Set(String::NewSymbol("exports"), Object::New());
+    contextObject->Set(String::NewSymbol("module"), moduleObject);
+    contextObject->Set(String::NewSymbol("exports"), moduleObject->Get(String::NewSymbol("exports"))->ToObject());
+
+    // copy file properties
+    if(fileInfo != NULL)
+    {
+        ThreadIsolate::UpdateContextFileGlobals(contextObject, fileInfo);
+    }
+}
+
+void ThreadIsolate::UpdateContextFileGlobals(Handle<Object> contextObject, const FileInfo* fileInfo)
+{
+    NanScope();
+
+    // set the file properites on the context
+    contextObject->Set(String::NewSymbol("__dirname"), String::New(fileInfo->folderPath));
+    contextObject->Set(String::NewSymbol("__filename"), String::New(fileInfo->fullPath));
 }

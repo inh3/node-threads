@@ -12,6 +12,9 @@ class FileInfo
         void LoadFile(const char* relativeFilePath, const char* currentDirectory = 0);
         const char* FileContents();
 
+        const char* fullPath;
+        const char* folderPath;
+
     protected:
 
         // ensure copy constructor can't get called
@@ -24,8 +27,6 @@ class FileInfo
         void GetFileContents(const char* fullFilePath);
 
         const char* fileName;
-        const char* folderPath;
-        const char* fullPath;
         const char* fileBuffer;
         int         fileBufferLength;
 
