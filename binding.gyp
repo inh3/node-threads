@@ -12,6 +12,7 @@
             'src/file/file_info.cc',
 
             'src/emulation/console.cc',
+            'src/emulation/process.cc',
             'src/emulation/require.cc',
 
             'src/thread/thread.cc',
@@ -20,7 +21,8 @@
             'src/thread/function-work-item.cc',
             
             'src/utilities/utilities.cc',
-            'src/utilities/error-handling.cc'
+            'src/utilities/error-handling.cc',
+            'src/utilities/json.cc'
         ],
 
         'include_dirs': [
