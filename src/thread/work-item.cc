@@ -54,7 +54,7 @@ void* WorkItem::WorkFunction(
     // leave the isolate
     isolate->Exit();
 
-    return workItem;
+    return (void*)workItem;
 }
 
 void WorkItem::WorkCallback(

@@ -21,6 +21,11 @@ typedef struct thread_context_s
     // node modules
     Persistent<Object>      node_util;
 
+    // json
+    Persistent<Object>      json_object;
+    Persistent<Function>    json_stringify;
+    Persistent<Function>    json_parse;
+
 } thread_context_t;
 
 class Thread

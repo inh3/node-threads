@@ -37,7 +37,7 @@ FunctionWorkItem::~FunctionWorkItem()
 
 void* FunctionWorkItem::InstanceWorkFunction()
 {
-    printf("FunctionWorkItem::InstanceWorkFunction\n");
+    printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
     printf("%s\n", _FunctionString);
     
     Handle<Function> functionToExecute;
@@ -45,13 +45,13 @@ void* FunctionWorkItem::InstanceWorkFunction()
 
     if(scriptResult->IsFunction())
     {
-        printf("IM A FUNCTION!\n");
+        printf("[ FunctionWorkItem::InstanceWorkFunction ] - Function\n");
         functionToExecute = scriptResult.As<Function>();
     }
     else if(scriptResult->IsObject() && 
         !(scriptResult.As<Object>()->GetHiddenValue(String::New("exception")).IsEmpty()))
     {
-        printf("NOT A FUNCTION ITS AN ERROR\n");
+        printf("[ FunctionWorkItem::InstanceWorkFunction ] - Error\n");
         //args[1].As<Function>()->Call(args.This(), 1, &(scriptResult));
     }
 

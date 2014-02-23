@@ -11,6 +11,9 @@
 
             'src/file/file_info.cc',
 
+            'src/emulation/console.cc',
+            'src/emulation/require.cc',
+
             'src/thread/thread.cc',
             'src/thread/thread-isolate.cc',
             'src/thread/work-item.cc',
@@ -25,6 +28,7 @@
             './src/node-threads',
             './src/file',
             './src/thread',
+            './src/emulation',
             './src/utilities',
             './src/threadpool',
             '<!(node -e \"require(\'nan\')\")'

@@ -3,6 +3,7 @@
 
 // node
 #include <node.h>
+#include <node_version.h>
 #include <v8.h>
 using namespace v8;
 
@@ -21,9 +22,12 @@ class ThreadIsolate
         // global context (per thread)
         static void     InitializeGlobalContext();
 
-    private:
+        // copies the global context to module context
+        static void     CloneGlobalContext(
+                            Handle<Object> sourceObject,
+                            Handle<Object> cloneObject);
 
-        static NAN_METHOD(ConsoleLog);
+    private:
 
         static bool         _IsInitialized;
         static FileInfo     _UtilFile;

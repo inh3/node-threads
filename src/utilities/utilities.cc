@@ -1,13 +1,18 @@
 #define _UTILITIES_CC_
 
 #include "utilities.h"
-#include "nan.h"
 
 // C
 #include <stdio.h>
 
 // custom
 #include "error-handling.h"
+
+// https://code.google.com/p/v8/source/browse/trunk/samples/shell.cc#91
+const char* Utilities::ToCString(const String::Utf8Value& value)
+{
+    return *value ? *value : "<string conversion failed>";
+}
 
 void Utilities::PrintObjectProperties(Handle<Object> objectHandle)
 {

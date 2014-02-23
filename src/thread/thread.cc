@@ -2,13 +2,13 @@
 
 #include "thread.h"
 
-// node
-#include <node_version.h>
-
 // C
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// node
+#include <node_version.h>
 
 // custom
 #include "thread-isolate.h"
@@ -70,6 +70,11 @@ void Thread::ThreadDestroy(void* threadContext)
 
         // dispose of node util object
         thisContext->node_util.Dispose();
+
+        // dispose of json
+        thisContext->json_stringify.Dispose();
+        thisContext->json_parse.Dispose();
+        thisContext->json_object.Dispose();
 
         // dispose of js context
         thisContext->isolate_context.Dispose();

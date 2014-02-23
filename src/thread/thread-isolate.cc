@@ -2,16 +2,18 @@
 
 #include "thread-isolate.h"
 
-// node
-#include <node_version.h>
-
 // custom
 #include "thread.h"
+#include "console.h"
+#include "process.h"
+#include "require.h"
+#include "json.h"
 #include "utilities.h"
 
 bool ThreadIsolate::_IsInitialized = false;
 FileInfo ThreadIsolate::_UtilFile;
 
+// this should only be called from main thread
 void ThreadIsolate::Initialize()
 {
     // make sure to only initialize once
@@ -20,6 +22,8 @@ void ThreadIsolate::Initialize()
         _IsInitialized = true;
 
         _UtilFile.LoadFile("./src/js/util.js");
+
+        Process::Initialize();
     }
 }
 
@@ -56,68 +60,42 @@ void ThreadIsolate::InitializeGlobalContext()
     Handle<Object> globalContext = threadContext->isolate_context->Global();
 #endif
 
+    // initialize the json object
+    JsonUtility::Initialize();
+
     // global namespace object
     globalContext->Set(String::NewSymbol("global"), Object::New());
 
-    // require(...)
-
-    // get handle to nRequire function
-    //Local<FunctionTemplate> functionTemplate = FunctionTemplate::New(Require::RequireFunction);
-    //Local<Function> requireFunction = functionTemplate->GetFunction();
-    //requireFunction->SetName(String::NewSymbol("require"));
-
-    // attach function to context
-    //globalContext->Set(String::NewSymbol("require"), requireFunction);
-
-    // console.log(...)
-
-    // create console object
-    Handle<Object> consoleObject = Object::New();
-
-    // store reference to node util object
-    Handle<Value> scriptResult = Utilities::CompileScriptSource(String::New(_UtilFile.FileContents()));
-    NanAssignPersistent(Object, threadContext->node_util, scriptResult->ToObject());
-
-    // get handle to log function
-    Local<FunctionTemplate> logTemplate = FunctionTemplate::New(ThreadIsolate::ConsoleLog);
-    Local<Function> logFunction = logTemplate->GetFunction();
-    logFunction->SetName(String::NewSymbol("log"));
-
-    // attach log function to console object
-    consoleObject->Set(String::NewSymbol("log"), logFunction);
+    // process ----------------------------------------------------------------
 
     // attach object to context
-    globalContext->Set(String::NewSymbol("console"), consoleObject);
+    globalContext->Set(String::NewSymbol("process"), Process::GetIsolateProcess());
+
+    // require(...) -----------------------------------------------------------
+
+    // get handle to nRequire function
+    Local<FunctionTemplate> functionTemplate = FunctionTemplate::New(Require::RequireMethod);
+    Local<Function> requireFunction = functionTemplate->GetFunction();
+    requireFunction->SetName(String::NewSymbol("require"));
+
+    // attach function to context
+    globalContext->Set(String::NewSymbol("require"), requireFunction);
+
+    // console ----------------------------------------------------------------
+
+    // attach object to context
+    globalContext->Set(String::NewSymbol("console"), Console::GetIsolateConsole(_UtilFile));
+
+    // /Utilities::PrintObjectProperties(globalContext);
 }
 
-// node -----------------------------------------------------------------------
-
-NAN_METHOD(ThreadIsolate::ConsoleLog)
+void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)
 {
-    // get reference to current isolate
-    Isolate* isolate = Isolate::GetCurrent();
-
-    // get reference to thread context for this isolate
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
-
-    // the handle for node's util module
-    Local<Object> nodeUtil;
-
-    // Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope handleScope(isolate);
-    nodeUtil = Local<Object>::New(isolate, threadContext->node_util);
-#else
-    HandleScope handleScope;
-    nodeUtil = Local<Object>::New(threadContext->node_util);
-#endif
-
-    Local<Value> inspectArgs[] = { args[0] };
-    Local<Function> utilInspect = nodeUtil->Get(String::NewSymbol("inspect")).As<Function>();
-    Handle<Value> inspectResult = utilInspect->Call(args.This(), 1, inspectArgs);
-
-    String::Utf8Value logMessage(inspectResult->ToString());
-    printf("%s\n", *logMessage);
-
-    NanReturnUndefined();
+    NanScope();
+    
+    // copy global properties
+    cloneObject->Set(String::NewSymbol("global"), sourceObject->Get(String::NewSymbol("global")));
+    cloneObject->Set(String::NewSymbol("console"), sourceObject->Get(String::NewSymbol("console")));
+    cloneObject->Set(String::NewSymbol("process"), sourceObject->Get(String::NewSymbol("process")));
+    cloneObject->Set(String::NewSymbol("require"), sourceObject->Get(String::NewSymbol("require")));
 }

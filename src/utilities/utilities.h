@@ -6,9 +6,13 @@
 #include <v8.h>
 using namespace v8;
 
+#include "nan.h"
+
 class Utilities
 {
     public:
+
+        static const char*      ToCString(const String::Utf8Value& value);
 
         static void             PrintObjectProperties(Handle<Object> objectHandle);
 

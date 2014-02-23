@@ -122,6 +122,7 @@ void FileInfo::GetFileInfo(const char* relativeFilePath, const char* currentDire
     fprintf(stdout, "[ FileInfo::GetFileInfo ] File Name: %s\n", this->fileName);
 }
 
+// https://v8.googlecode.com/svn/trunk/tools/lexer-shell.cc
 void FileInfo::GetFileContents(const char* fullFilePath)
 {
     // attempt to open the file
