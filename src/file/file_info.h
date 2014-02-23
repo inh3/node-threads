@@ -8,13 +8,16 @@ class FileInfo
 {
     public:
 
+        FileInfo();
         FileInfo(const char* relativeFilePath, const char* currentDirectory = NULL);
         ~FileInfo();
 
+        void LoadFile(const char* relativeFilePath, const char* currentDirectory = NULL);
+        const char* FileContents();
+
     protected:
 
-        // ensure defult/copy constructor can't get called
-        FileInfo();
+        // ensure copy constructor can't get called
         FileInfo(FileInfo const&);
         void operator=(FileInfo const&);
 

@@ -27,6 +27,9 @@ void* Thread::ThreadInit()
     // create thread isolate
     threadContext->thread_isolate = Isolate::New();
 
+    // store reference to thread context within isolate
+    threadContext->thread_isolate->SetData((void*)threadContext);
+
     return (void*)threadContext;
 }
 
@@ -44,32 +47,7 @@ void Thread::ThreadPostInit(void* threadContext)
         // enter the isolate
         isolate->Enter();
 
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-        HandleScope handleScope(isolate);
-
-        // create a isolate context for the javascript in this thread
-        NanAssignPersistent(Context, thisContext->isolate_context, Context::New(isolate));
-
-        // enter thread specific context
-        Context::Scope contextScope(isolate, thisContext->isolate_context);
-
-        // get usable handle to the context's object
-        Local<Object> globalContext = Local<Context>::New(isolate, thisContext->isolate_context)->Global();
-#else
-        HandleScope handleScope;
-
-        // create a isolate context for the javascript in this thread
-        Persistent<Context> isolateContext(Context::New());
-        thisContext->isolate_context = isolateContext;
-
-        // enter thread specific context
-        Context::Scope contextScope(thisContext->isolate_context);
-
-        // get usable handle to the context's object
-        Handle<Object> globalContext = thisContext->isolate_context->Global();
-#endif
-        ThreadIsolate::InitializeGlobalContext(isolate, globalContext);
+        ThreadIsolate::InitializeGlobalContext();
     }
 
     // leave the isolate
@@ -89,6 +67,9 @@ void Thread::ThreadDestroy(void* threadContext)
 
         // enter the isolate
         isolate->Enter();
+
+        // dispose of node util object
+        thisContext->node_util.Dispose();
 
         // dispose of js context
         thisContext->isolate_context.Dispose();

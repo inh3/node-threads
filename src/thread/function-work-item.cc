@@ -35,7 +35,7 @@ FunctionWorkItem::~FunctionWorkItem()
     free(_FunctionString);
 }
 
-void* FunctionWorkItem::InstanceWorkFunction(const Isolate* isolate)
+void* FunctionWorkItem::InstanceWorkFunction()
 {
     printf("FunctionWorkItem::InstanceWorkFunction\n");
     printf("%s\n", _FunctionString);

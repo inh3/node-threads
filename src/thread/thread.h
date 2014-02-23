@@ -18,6 +18,9 @@ typedef struct thread_context_s
     Isolate*                thread_isolate;
     Persistent<Context>     isolate_context;
 
+    // node modules
+    Persistent<Object>      node_util;
+
 } thread_context_t;
 
 class Thread

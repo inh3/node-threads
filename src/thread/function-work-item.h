@@ -11,7 +11,7 @@ class FunctionWorkItem : public WorkItem
         FunctionWorkItem(const char* functionString);
         virtual ~FunctionWorkItem();
 
-        virtual void*   InstanceWorkFunction(const Isolate* isolate);
+        virtual void*   InstanceWorkFunction();
         virtual void    InstanceWorkCallback();
 
     private:

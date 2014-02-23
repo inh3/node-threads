@@ -48,7 +48,7 @@ void* WorkItem::WorkFunction(
         Context::Scope contextScope(threadContext->isolate_context);
 #endif
 
-        workItem->InstanceWorkFunction(isolate);
+        workItem->InstanceWorkFunction();
     }
 
     // leave the isolate

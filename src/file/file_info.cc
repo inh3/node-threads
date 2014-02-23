@@ -17,12 +17,18 @@
 #include <io.h>
 #endif
 
+FileInfo::FileInfo()
+{
+    this->fileName = NULL;
+    this->folderPath = NULL;
+    this->fullPath = NULL;
+    this->fileBuffer = NULL;
+    fileBufferLength = 0;
+}
+
 FileInfo::FileInfo(const char* relativeFilePath, const char* currentDirectory)
 {
-    this->GetFileInfo(relativeFilePath, currentDirectory);
-
-    // read contents of file
-    this->GetFileContents(this->fullPath);
+    this->LoadFile(relativeFilePath, currentDirectory);
 }
 
 FileInfo::~FileInfo()
@@ -36,6 +42,17 @@ FileInfo::~FileInfo()
     // don't need to delete this because
     // it was a reference into fullPath
     this->fileName = NULL;
+}
+
+void FileInfo::LoadFile(const char* relativeFilePath, const char* currentDirectory)
+{
+    this->GetFileInfo(relativeFilePath, currentDirectory);
+    this->GetFileContents(this->fullPath);
+}
+
+const char* FileInfo::FileContents()
+{
+    return this->fileBuffer;
 }
 
 void FileInfo::GetFileInfo(const char* relativeFilePath, const char* currentDirectory)
@@ -63,7 +80,7 @@ void FileInfo::GetFileInfo(const char* relativeFilePath, const char* currentDire
         // http://msdn.microsoft.com/en-us/library/a2xs1dts.aspx
         if((_access_s((char*)this->fullPath, 0)) != 0)
         {
-            //fprintf(stdout, "[ Utilities - Error ] Invalid File: %s\n", filePath.c_str());
+            fprintf(stdout, "[ Utilities - Error ] Invalid File: %s\n", filePath.c_str());
             free((void*)this->fullPath);
             this->fullPath = 0;
         }
@@ -72,7 +89,7 @@ void FileInfo::GetFileInfo(const char* relativeFilePath, const char* currentDire
         memset((void*)this->fullPath, 0, PATH_MAX + 1);
         if(realpath(filePath.c_str(), (char *)this->fullPath) == NULL)
         {
-            //fprintf(stdout, "[ Utilities - Error ] Invalid File: %s\n", filePath.c_str());
+            fprintf(stdout, "[ Utilities - Error ] Invalid File: %s\n", filePath.c_str());
             free((void*)this->fullPath);
             this->fullPath = 0;
         }

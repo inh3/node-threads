@@ -19,7 +19,7 @@ class WorkItem
         WorkItem();
         virtual ~WorkItem();
 
-        virtual void*   InstanceWorkFunction(const Isolate* isolate) = 0;
+        virtual void*   InstanceWorkFunction() = 0;
         virtual void    InstanceWorkCallback() = 0;
 
         static void*    WorkFunction(

@@ -9,6 +9,9 @@ using namespace node;
 // node threads
 #include "node-threads-factory.h"
 
+// custom
+#include "thread-isolate.h"
+
 /**
  * Gets or creates a thread pool instance.
  *
@@ -78,6 +81,8 @@ NAN_METHOD(DeleteThreadPool)
 
 void init(Handle<Object> exports, Handle<Object> module)
 {
+    ThreadIsolate::Initialize();
+
     NodeThreadsFactory::Init(exports, module);
 
     exports->Set(NanSymbol("getThreadPool"),
