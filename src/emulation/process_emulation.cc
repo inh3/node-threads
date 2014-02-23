@@ -1,6 +1,6 @@
-#define _PROCESS_CC_
+#define _PROCESS_EMULATION_CC_
 
-#include "process.h"
+#include "process_emulation.h"
 
 // custom
 #include "utilities.h"

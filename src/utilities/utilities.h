@@ -16,7 +16,7 @@ class Utilities
 
         static void             PrintObjectProperties(Handle<Object> objectHandle);
 
-        static Handle<Value>    CompileScriptSource(Handle<String> scriptSource, const char* scriptResourceName = NULL);
+        static Handle<Value>    CompileScriptSource(Handle<String> scriptSource, const char* scriptResourceName = 0);
 };
 
 #endif /* _UTILITIES_H_ */

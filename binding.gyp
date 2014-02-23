@@ -12,7 +12,7 @@
             'src/file/file_info.cc',
 
             'src/emulation/console.cc',
-            'src/emulation/process.cc',
+            'src/emulation/process_emulation.cc',
             'src/emulation/require.cc',
 
             'src/thread/thread.cc',

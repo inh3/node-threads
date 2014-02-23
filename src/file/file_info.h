@@ -1,18 +1,15 @@
 #ifndef _FILE_INFO_H_
 #define _FILE_INFO_H_
 
-// C
-#include <stdlib.h>
-
 class FileInfo
 {
     public:
 
         FileInfo();
-        FileInfo(const char* relativeFilePath, const char* currentDirectory = NULL);
+        FileInfo(const char* relativeFilePath, const char* currentDirectory = 0);
         ~FileInfo();
 
-        void LoadFile(const char* relativeFilePath, const char* currentDirectory = NULL);
+        void LoadFile(const char* relativeFilePath, const char* currentDirectory = 0);
         const char* FileContents();
 
     protected:
@@ -23,7 +20,7 @@ class FileInfo
 
     private:
 
-        void GetFileInfo(const char* relativeFilePath, const char* currentDirectory = NULL);
+        void GetFileInfo(const char* relativeFilePath, const char* currentDirectory = 0);
         void GetFileContents(const char* fullFilePath);
 
         const char* fileName;

@@ -1,5 +1,5 @@
-#ifndef _PROCESS_H
-#define _PROCESS_H
+#ifndef _PROCESS_EMULATION_H_
+#define _PROCESS_EMULATION_H_
 
 // node
 #include <node.h>
@@ -41,4 +41,4 @@ class Process
         void operator=(Process const&);
 };
 
-#endif /* _PROCESS_H */
+#endif /* _PROCESS_EMULATION_H_ */

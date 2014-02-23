@@ -5,7 +5,7 @@
 // custom
 #include "thread.h"
 #include "console.h"
-#include "process.h"
+#include "process_emulation.h"
 #include "require.h"
 #include "json.h"
 #include "utilities.h"
