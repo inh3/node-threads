@@ -79,6 +79,8 @@ NAN_METHOD(DeleteThreadPool)
     NanReturnUndefined();
 }
 
+// https://github.com/joyent/node/wiki/Api-changes-between-v0.8-and-v0.10 -----
+
 NAN_METHOD(SubStack)
 {
     NanScope();
@@ -102,7 +104,8 @@ void init(Handle<Object> exports, Handle<Object> module)
 {
     NodeThreadsFactory::Init(exports, module);
 
-    module->Set(String::NewSymbol("exports"), FunctionTemplate::New(SubStack)->GetFunction());
+    module->Set(String::NewSymbol("exports"),
+        FunctionTemplate::New(SubStack)->GetFunction());
 }
 
 NODE_MODULE(node_threads, init);
