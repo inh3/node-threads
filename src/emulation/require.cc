@@ -105,8 +105,6 @@ void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileIn
     // add to the thread context for later lookup
     String::Utf8Value moduleNameStr(moduleName);
     threadContext->native_modules->insert(make_pair(*moduleNameStr, moduleWrap));
-
-    //Utilities::PrintObjectProperties(NanObjectWrapHandle(moduleWrap));
 }
 
 // node -----------------------------------------------------------------------
@@ -129,14 +127,24 @@ NAN_METHOD(Require::RequireMethod)
     nativeSupportFunc = Local<Function>::New(threadContext->native_support);
 #endif
 
-    printf("Require Function!\n");
+    Local<Object> exports;
 
     Local<Value> moduleArg[] = { args[0] };
     Handle<Value> isSupported = nativeSupportFunc->Call(
         args.This(),
         1,
         moduleArg);
-    printf("Native Supported: %u\n", isSupported->ToBoolean()->Value());
+    bool isNativeModule = isSupported->ToBoolean()->Value();
 
-    NanReturnUndefined();
+    if(isNativeModule == true)
+    {
+        String::Utf8Value moduleName(args[0]->ToString());
+        // attempt to find the node thread instance by its name
+        NativeMap::const_iterator nativeModuleItr =
+            threadContext->native_modules->find(*moduleName);
+
+        exports = NanObjectWrapHandle(nativeModuleItr->second);
+    }
+
+    NanReturnValue(exports);
 }

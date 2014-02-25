@@ -8,15 +8,12 @@ using namespace v8;
 
 #include "nan.h"
 
-// custom
-#include "file_info.h"
-
 class Console
 {
     public:
 
         // should be called once per isolate
-        static Handle<Object> GetIsolateConsole(const FileInfo& utilFile);
+        static Handle<Object> GetIsolateConsole();
 
     private:
 

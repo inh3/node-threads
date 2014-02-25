@@ -42,10 +42,7 @@ class ThreadIsolate
     private:
 
         static bool         _IsInitialized;
-        
         static FileInfo     _NativeModuleSupport;
-        static FileInfo     _UtilFile;
-
         static string       _ModuleDir;
 };
 

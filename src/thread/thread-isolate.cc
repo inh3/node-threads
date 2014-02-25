@@ -11,10 +11,7 @@
 #include "utilities.h"
 
 bool ThreadIsolate::_IsInitialized = false;
-
 FileInfo ThreadIsolate::_NativeModuleSupport;
-FileInfo ThreadIsolate::_UtilFile;
-
 string ThreadIsolate::_ModuleDir;
 
 // this should only be called from main thread
@@ -28,7 +25,6 @@ void ThreadIsolate::Initialize(const char* dirString)
         _ModuleDir.assign(dirString);
 
         _NativeModuleSupport.LoadFile("./src/js/native-module-support.js");
-        _UtilFile.LoadFile("./src/js/utilx.js");
 
         Process::Initialize();
     }
@@ -78,6 +74,11 @@ void ThreadIsolate::InitializeGlobalContext()
     // attach object to context
     globalContext->Set(String::NewSymbol("process"), Process::GetIsolateProcess());
 
+    // console ----------------------------------------------------------------
+
+    // attach object to context
+    globalContext->Set(String::NewSymbol("console"), Console::GetIsolateConsole());
+
     // require(...) -----------------------------------------------------------
 
     // get handle to require function
@@ -88,15 +89,8 @@ void ThreadIsolate::InitializeGlobalContext()
     // attach function to context
     globalContext->Set(String::NewSymbol("require"), requireFunction);
 
-    // console ----------------------------------------------------------------
-
-    // attach object to context
-    globalContext->Set(String::NewSymbol("console"), Console::GetIsolateConsole(_UtilFile));
-
     // initialize require
     Require::InitializePerIsolate(_NativeModuleSupport);
-
-    // /Utilities::PrintObjectProperties(globalContext);
 }
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)
