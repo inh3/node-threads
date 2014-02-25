@@ -30,6 +30,16 @@ void Utilities::PrintObjectProperties(Handle<Object> objectHandle)
     }
 }
 
+void Utilities::CopyObject(Handle<Object> toObject, Handle<Object> fromObject)
+{
+    Local<Array> propertyKeys = fromObject->GetPropertyNames();
+    for (uint32_t keyIndex = 0; keyIndex < propertyKeys->Length(); keyIndex++)
+    {
+        Handle<Value> propertyKey = propertyKeys->Get(keyIndex);
+        toObject->Set(propertyKey, fromObject->Get(propertyKey));
+    }
+}
+
 Handle<Value> Utilities::CompileScriptSource(Handle<String> scriptSource, const char* scriptResourceName)
 {
     TryCatch tryCatch;

@@ -16,6 +16,8 @@ class Utilities
 
         static void             PrintObjectProperties(Handle<Object> objectHandle);
 
+        static void             CopyObject(Handle<Object> toObject, Handle<Object> fromObject);
+
         static Handle<Value>    CompileScriptSource(Handle<String> scriptSource, const char* scriptResourceName = 0);
 };
 

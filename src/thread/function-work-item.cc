@@ -19,6 +19,8 @@ using namespace v8;
 
 FunctionWorkItem::FunctionWorkItem(const char* functionString)
 {
+    printf("FunctionWorkItem::FunctionWorkItem\n");
+    
     size_t fStrLen = strlen(functionString);
 
     // add 3 extra slots for '(' + function + ')' + '\0'
@@ -32,6 +34,7 @@ FunctionWorkItem::FunctionWorkItem(const char* functionString)
 
 FunctionWorkItem::~FunctionWorkItem()
 {
+    printf("FunctionWorkItem::~FunctionWorkItem\n");
     free(_FunctionString);
 }
 

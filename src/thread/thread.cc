@@ -19,6 +19,9 @@ void* Thread::ThreadInit()
     thread_context_t* threadContext = (thread_context_t*)malloc(sizeof(thread_context_t));
     memset(threadContext, 0, sizeof(thread_context_t));
 
+    // create the native module map
+    threadContext->native_modules = new NativeMap();
+
     // create and initialize async watcher
     threadContext->uv_async_ptr = (uv_async_t*)malloc(sizeof(uv_async_t));
     memset(threadContext->uv_async_ptr, 0, sizeof(uv_async_t));
@@ -70,6 +73,23 @@ void Thread::ThreadDestroy(void* threadContext)
 
         // dispose of node util object
         thisContext->node_util.Dispose();
+        thisContext->native_support.Dispose();
+
+        // clean-up the native modules
+        for(NativeMap::iterator it = thisContext->native_modules->begin(); it != thisContext->native_modules->end(); ++it)
+        {
+            PersistentWrap* pWrap = it->second;
+            pWrap->Unref();
+#if (NODE_MODULE_VERSION > 0x000B)
+            pWrap->persistent().Dispose();
+            pWrap->persistent().Clear();
+#else
+            pWrap->handle_.Dispose();
+            pWrap->handle_.Clear();
+#endif
+            delete pWrap;
+        }
+        thisContext->native_modules->clear();
 
         // dispose of json
         thisContext->json_stringify.Dispose();
@@ -88,6 +108,9 @@ void Thread::ThreadDestroy(void* threadContext)
 
     //uv_unref((uv_handle_t*)thisContext->uvAsync);
     uv_close((uv_handle_t*)thisContext->uv_async_ptr, Thread::AsyncCloseCallback);
+
+    // release the native modules
+    delete thisContext->native_modules;
 
     // release the thread context memory
     free(thisContext);

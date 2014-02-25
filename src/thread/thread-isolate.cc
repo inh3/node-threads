@@ -11,7 +11,10 @@
 #include "utilities.h"
 
 bool ThreadIsolate::_IsInitialized = false;
+
+FileInfo ThreadIsolate::_NativeModuleSupport;
 FileInfo ThreadIsolate::_UtilFile;
+
 string ThreadIsolate::_ModuleDir;
 
 // this should only be called from main thread
@@ -23,7 +26,9 @@ void ThreadIsolate::Initialize(const char* dirString)
         _IsInitialized = true;
 
         _ModuleDir.assign(dirString);
-        _UtilFile.LoadFile("./src/js/util.js");
+
+        _NativeModuleSupport.LoadFile("./src/js/native-module-support.js");
+        _UtilFile.LoadFile("./src/js/utilx.js");
 
         Process::Initialize();
     }
@@ -75,7 +80,7 @@ void ThreadIsolate::InitializeGlobalContext()
 
     // require(...) -----------------------------------------------------------
 
-    // get handle to nRequire function
+    // get handle to require function
     Local<FunctionTemplate> functionTemplate = FunctionTemplate::New(Require::RequireMethod);
     Local<Function> requireFunction = functionTemplate->GetFunction();
     requireFunction->SetName(String::NewSymbol("require"));
@@ -88,12 +93,20 @@ void ThreadIsolate::InitializeGlobalContext()
     // attach object to context
     globalContext->Set(String::NewSymbol("console"), Console::GetIsolateConsole(_UtilFile));
 
+    // initialize require
+    Require::InitializePerIsolate(_NativeModuleSupport);
+
     // /Utilities::PrintObjectProperties(globalContext);
 }
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)
 {
-    NanScope();
+#if (NODE_MODULE_VERSION > 0x000B)
+        Isolate* isolate = Isolate::GetCurrent();
+        HandleScope scope(isolate);
+#else
+        HandleScope scope;
+#endif
     
     // copy global properties
     cloneObject->Set(String::NewSymbol("global"), sourceObject->Get(String::NewSymbol("global")));
@@ -104,7 +117,12 @@ void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Objec
 
 void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const FileInfo* fileInfo)
 {
-    NanScope();
+#if (NODE_MODULE_VERSION > 0x000B)
+        Isolate* isolate = Isolate::GetCurrent();
+        HandleScope scope(isolate);
+#else
+        HandleScope scope;
+#endif
 
     // create the module/exports within context
     Handle<Object> moduleObject = Object::New();
@@ -121,7 +139,12 @@ void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const File
 
 void ThreadIsolate::UpdateContextFileGlobals(Handle<Object> contextObject, const FileInfo* fileInfo)
 {
-    NanScope();
+#if (NODE_MODULE_VERSION > 0x000B)
+        Isolate* isolate = Isolate::GetCurrent();
+        HandleScope scope(isolate);
+#else
+        HandleScope scope;
+#endif
 
     // set the file properites on the context
     contextObject->Set(String::NewSymbol("__dirname"), String::New(fileInfo->folderPath));

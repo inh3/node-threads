@@ -126,8 +126,8 @@ NAN_METHOD(NodeThreadsFactory::DestroyInstance)
     if(nodeThreadInstance != NodeThreadsFactory::_NodeThreadMap.end())
     {
         // remove the instance and unreference it
-        NodeThreadsFactory::_NodeThreadMap.erase(nodeThreadKey);
         NodeThreads *nodeThread = nodeThreadInstance->second;
+        NodeThreadsFactory::_NodeThreadMap.erase(nodeThreadKey);
         nodeThread->Destroy();
         nodeThread->Unref();
         NanReturnValue(Boolean::New(true));

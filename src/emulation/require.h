@@ -5,16 +5,27 @@
 #include <node.h>
 #include <v8.h>
 using namespace v8;
+using namespace node;
 
 #include "nan.h"
+
+// custom
+#include "thread.h"
+#include "file_info.h"
 
 class Require
 {
     public:
+
+        // should be called once per isolate
+        static void InitializePerIsolate(const FileInfo& nativeModuleFile);
         
         static NAN_METHOD(RequireMethod);
 
     private:
+
+        static void LoadNativeModules();
+        static void LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileInfo);
 
         // ensure default constructor can't get called
         Require();

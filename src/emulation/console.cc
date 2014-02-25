@@ -46,15 +46,14 @@ NAN_METHOD(Console::Log)
     // get reference to thread context for this isolate
     thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
 
-    // the handle for node's util module
-    Local<Object> nodeUtil;
-
     // Node 0.11+ (0.11.3 and below won't compile with these)
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope handleScope(isolate);
+    Local<Object> nodeUtil;
     nodeUtil = Local<Object>::New(isolate, threadContext->node_util);
 #else
     HandleScope handleScope;
+    Local<Object> nodeUtil;
     nodeUtil = Local<Object>::New(threadContext->node_util);
 #endif
 

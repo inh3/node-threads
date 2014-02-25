@@ -7,12 +7,12 @@
 
 WorkItem::WorkItem()
 {
-
+    printf("WorkItem::WorkItem\n");
 }
 
 WorkItem::~WorkItem()
 {
-
+    printf("WorkItem::~WorkItem\n");
 }
 
 void* WorkItem::WorkFunction(

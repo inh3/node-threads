@@ -9,6 +9,21 @@ using namespace v8;
 
 #include "nan.h"
 
+// C++
+#include <string>
+#ifdef __APPLE__
+#include <tr1/unordered_map>
+using namespace std::tr1;
+#else
+#include <unordered_map>
+#endif
+using namespace std;
+
+// custom
+#include "persistent-wrap.h"
+
+typedef unordered_map<string, PersistentWrap*> NativeMap;
+
 typedef struct thread_context_s
 {
     // libuv
@@ -18,8 +33,10 @@ typedef struct thread_context_s
     Isolate*                thread_isolate;
     Persistent<Context>     isolate_context;
 
-    // node modules
+    // native node modules
     Persistent<Object>      node_util;
+    Persistent<Function>    native_support;
+    NativeMap*              native_modules;
 
     // json
     Persistent<Object>      json_object;
