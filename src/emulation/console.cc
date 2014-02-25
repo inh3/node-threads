@@ -35,15 +35,16 @@ NAN_METHOD(Console::Log)
     // get reference to thread context for this isolate
     thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
 
-    // Node 0.11+ (0.11.3 and below won't compile with these)
+    NativeMap::const_iterator nativeModuleItr = threadContext->native_modules->find("util");
+
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope handleScope(isolate);
+    Local<Object> utilObject = NanObjectWrapHandle(nativeModuleItr->second);
 #else
     HandleScope handleScope;
+    Local<Object> utilObject = Local<Object>::New(
+        NanObjectWrapHandle(nativeModuleItr->second));
 #endif
-
-    NativeMap::const_iterator nativeModuleItr = threadContext->native_modules->find("util");
-    Local<Object> utilObject = NanObjectWrapHandle(nativeModuleItr->second);
 
     Local<Value> inspectArgs[] = { args[0] };
     Local<Function> utilInspect = utilObject->Get(String::NewSymbol("inspect")).As<Function>();

@@ -143,7 +143,12 @@ NAN_METHOD(Require::RequireMethod)
         NativeMap::const_iterator nativeModuleItr =
             threadContext->native_modules->find(*moduleName);
 
+#if (NODE_MODULE_VERSION > 0x000B)
         exports = NanObjectWrapHandle(nativeModuleItr->second);
+#else
+        exports = Local<Object>::New(
+            NanObjectWrapHandle(nativeModuleItr->second));
+#endif
     }
 
     NanReturnValue(exports);
