@@ -4,14 +4,12 @@
 
 // custom
 #include "thread.h"
-#include "console.h"
 #include "process_emulation.h"
 #include "require.h"
 #include "json.h"
 #include "utilities.h"
 
 bool ThreadIsolate::_IsInitialized = false;
-FileInfo ThreadIsolate::_NativeModuleSupport;
 string ThreadIsolate::_ModuleDir;
 
 // this should only be called from main thread
@@ -23,8 +21,6 @@ void ThreadIsolate::Initialize(const char* dirString)
         _IsInitialized = true;
 
         _ModuleDir.assign(dirString);
-
-        _NativeModuleSupport.LoadFile("./src/js/native-module-support.js");
 
         Process::Initialize();
     }
@@ -74,11 +70,6 @@ void ThreadIsolate::InitializeGlobalContext()
     // attach object to context
     globalContext->Set(String::NewSymbol("process"), Process::GetIsolateProcess());
 
-    // console ----------------------------------------------------------------
-
-    // attach object to context
-    globalContext->Set(String::NewSymbol("console"), Console::GetIsolateConsole());
-
     // require(...) -----------------------------------------------------------
 
     // get handle to require function
@@ -90,7 +81,22 @@ void ThreadIsolate::InitializeGlobalContext()
     globalContext->Set(String::NewSymbol("require"), requireFunction);
 
     // initialize require
-    Require::InitializePerIsolate(_NativeModuleSupport);
+    Require::InitializePerIsolate();
+
+    // console ----------------------------------------------------------------
+
+    // attempt to find the node thread instance by its name
+    NativeMap::const_iterator consoleModuleItr =
+            threadContext->native_modules->find("console");
+#if (NODE_MODULE_VERSION > 0x000B)
+    Local<Object> consoleObject = NanObjectWrapHandle(consoleModuleItr->second);
+#else
+    Local<Object> consoleObject = Local<Object>::New(
+        NanObjectWrapHandle(consoleModuleItr->second));
+#endif
+
+    // attach object to context
+    globalContext->Set(String::NewSymbol("console"), consoleObject);
 }
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)

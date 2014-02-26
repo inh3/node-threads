@@ -34,8 +34,6 @@ typedef struct thread_context_s
     Persistent<Context>     isolate_context;
 
     // native node modules
-    Persistent<Object>      node_util;
-    Persistent<Function>    native_support;
     NativeMap*              native_modules;
 
     // json

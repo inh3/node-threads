@@ -71,10 +71,6 @@ void Thread::ThreadDestroy(void* threadContext)
         // enter the isolate
         isolate->Enter();
 
-        // dispose of node util object
-        thisContext->node_util.Dispose();
-        thisContext->native_support.Dispose();
-
         // clean-up the native modules
         for(NativeMap::iterator it = thisContext->native_modules->begin(); it != thisContext->native_modules->end(); ++it)
         {

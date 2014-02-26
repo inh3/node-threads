@@ -2,7 +2,11 @@
 
 #include "process_emulation.h"
 
+// C
+#include <stdio.h>
+
 // custom
+#include "thread.h"
 #include "utilities.h"
 
 string Process::Arch;
@@ -48,6 +52,22 @@ Handle<Object> Process::GetIsolateProcess()
 {
     Handle<Object> processObject = Object::New();
 
+    // set stdout.write
+    Local<FunctionTemplate> stdOutWrite = FunctionTemplate::New(Process::StdOutWrite);
+    Local<Function> stdOutWriteFunc = stdOutWrite->GetFunction();
+    stdOutWriteFunc->SetName(String::NewSymbol("write"));
+    Handle<Object> stdOutObject = Object::New();
+    stdOutObject->Set(String::NewSymbol("write"), stdOutWriteFunc);
+    processObject->Set(String::NewSymbol("stdout"), stdOutObject);
+
+    // set stderr.write
+    Local<FunctionTemplate> stdErrWrite = FunctionTemplate::New(Process::StdErrWrite);
+    Local<Function> stdErrWriteFunc = stdErrWrite->GetFunction();
+    stdErrWriteFunc->SetName(String::NewSymbol("write"));
+    Handle<Object> stdErrObject = Object::New();
+    stdErrObject->Set(String::NewSymbol("write"), stdErrWriteFunc);
+    processObject->Set(String::NewSymbol("stderr"), stdErrObject);
+
     processObject->SetAccessor(
         String::NewSymbol("env"),
         Process::GetEnv,
@@ -76,6 +96,36 @@ Handle<Object> Process::GetIsolateProcess()
 }
 
 // node -----------------------------------------------------------------------
+
+NAN_METHOD(Process::StdOutWrite)
+{
+#if (NODE_MODULE_VERSION > 0x000B)
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope handleScope(isolate);
+#else
+    HandleScope handleScope;
+#endif
+
+    String::Utf8Value outputStr(args[0]->ToString());
+    fprintf(stdout, "%s", *outputStr);
+
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Process::StdErrWrite)
+{
+#if (NODE_MODULE_VERSION > 0x000B)
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope handleScope(isolate);
+#else
+    HandleScope handleScope;
+#endif
+
+    String::Utf8Value outputStr(args[0]->ToString());
+    fprintf(stderr, "%s", *outputStr);
+
+    NanReturnUndefined();
+}
 
 NAN_GETTER(Process::GetArch)
 {

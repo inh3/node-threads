@@ -81,7 +81,7 @@ void FileInfo::GetFileInfo(const char* relativeFilePath, const char* currentDire
         // http://msdn.microsoft.com/en-us/library/a2xs1dts.aspx
         if((_access_s((char*)this->fullPath, 0)) != 0)
         {
-            fprintf(stdout, "[ Utilities - Error ] Invalid File: %s\n", filePath.c_str());
+            fprintf(stdout, "[ FileInfo - Error ] Invalid File: %s\n", filePath.c_str());
             free((void*)this->fullPath);
             this->fullPath = 0;
         }
@@ -90,7 +90,7 @@ void FileInfo::GetFileInfo(const char* relativeFilePath, const char* currentDire
         memset((void*)this->fullPath, 0, PATH_MAX + 1);
         if(realpath(filePath.c_str(), (char *)this->fullPath) == NULL)
         {
-            fprintf(stdout, "[ Utilities - Error ] Invalid File: %s\n", filePath.c_str());
+            fprintf(stdout, "[ FileInfo - Error ] Invalid File: %s\n", filePath.c_str());
             free((void*)this->fullPath);
             this->fullPath = 0;
         }
@@ -118,9 +118,9 @@ void FileInfo::GetFileInfo(const char* relativeFilePath, const char* currentDire
         memcpy((void*)this->folderPath, this->fullPath, folderPathLength);
     }
 
-    fprintf(stdout, "[ FileInfo::GetFileInfo ] Full Path: %s\n", this->fullPath);
-    fprintf(stdout, "[ FileInfo::GetFileInfo ] Folder Path: %s\n", this->folderPath);
-    fprintf(stdout, "[ FileInfo::GetFileInfo ] File Name: %s\n", this->fileName);
+    //fprintf(stdout, "[ FileInfo::GetFileInfo ] Full Path: %s\n", this->fullPath);
+    //fprintf(stdout, "[ FileInfo::GetFileInfo ] Folder Path: %s\n", this->folderPath);
+    //fprintf(stdout, "[ FileInfo::GetFileInfo ] File Name: %s\n", this->fileName);
 }
 
 // https://v8.googlecode.com/svn/trunk/tools/lexer-shell.cc

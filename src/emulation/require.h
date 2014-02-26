@@ -10,7 +10,6 @@ using namespace node;
 #include "nan.h"
 
 // custom
-#include "thread.h"
 #include "file_info.h"
 
 class Require
@@ -18,13 +17,12 @@ class Require
     public:
 
         // should be called once per isolate
-        static void InitializePerIsolate(const FileInfo& nativeModuleFile);
+        static void InitializePerIsolate();
         
         static NAN_METHOD(RequireMethod);
 
     private:
 
-        static void LoadNativeModules();
         static void LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileInfo);
 
         // ensure default constructor can't get called

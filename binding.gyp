@@ -11,7 +11,6 @@
 
             'src/file/file_info.cc',
 
-            'src/emulation/console.cc',
             'src/emulation/process_emulation.cc',
             'src/emulation/require.cc',
 

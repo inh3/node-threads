@@ -24,6 +24,9 @@ class Process
 
     private:
 
+        static NAN_METHOD(StdOutWrite);
+        static NAN_METHOD(StdErrWrite);
+
         // property accessors
         static NAN_GETTER(GetArch);
         static NAN_GETTER(GetEnv);

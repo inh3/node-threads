@@ -6,44 +6,24 @@
 #include <stdio.h>
 
 // custom
+#include "thread.h"
 #include "thread-isolate.h"
 #include "persistent-wrap.h"
 #include "utilities.h"
 
-void Require::InitializePerIsolate(const FileInfo& nativeModuleFile)
-{
-// get reference to current isolate
-    Isolate* isolate = Isolate::GetCurrent();
-
-    // get reference to thread context for this isolate
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
-
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
-
-    // store reference to node util object
-    FileInfo& nativeModuleFileRef = const_cast<FileInfo&>(nativeModuleFile);
-    Handle<Value> scriptResult = Utilities::CompileScriptSource(
-        String::New(nativeModuleFileRef.FileContents()));
-    NanAssignPersistent(Function,
-        threadContext->native_support,
-        scriptResult.As<Function>());
-
-    // load supported native modules
-    LoadNativeModules();
-}
-
-void Require::LoadNativeModules()
+void Require::InitializePerIsolate()
 {
     FileInfo utilFile("./src/js/util.js");
     LoadNativeModule(String::New("util"), &utilFile);
 
     FileInfo pathFile("./src/js/path.js");
     LoadNativeModule(String::New("path"), &pathFile);
+
+    FileInfo assertFile("./src/js/assert.js");
+    LoadNativeModule(String::New("assert"), &assertFile);
+
+    FileInfo consoleFile("./src/js/console.js");
+    LoadNativeModule(String::New("console"), &consoleFile);
 }
 
 void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileInfo)
@@ -119,30 +99,21 @@ NAN_METHOD(Require::RequireMethod)
 
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope scope(isolate);
-    Local<Function> nativeSupportFunc;
-    nativeSupportFunc = Local<Function>::New(isolate, threadContext->native_support);
 #else
     HandleScope scope;
-    Local<Function> nativeSupportFunc;
-    nativeSupportFunc = Local<Function>::New(threadContext->native_support);
 #endif
 
+    // module export to be returned from require(...)
     Local<Object> exports;
 
-    Local<Value> moduleArg[] = { args[0] };
-    Handle<Value> isSupported = nativeSupportFunc->Call(
-        args.This(),
-        1,
-        moduleArg);
-    bool isNativeModule = isSupported->ToBoolean()->Value();
+    // string representation of module to be required
+    String::Utf8Value moduleName(args[0]->ToString());
 
-    if(isNativeModule == true)
-    {
-        String::Utf8Value moduleName(args[0]->ToString());
-        // attempt to find the node thread instance by its name
-        NativeMap::const_iterator nativeModuleItr =
+    // attempt to find the node thread instance by its name
+    NativeMap::const_iterator nativeModuleItr =
             threadContext->native_modules->find(*moduleName);
-
+    if(nativeModuleItr != threadContext->native_modules->end())
+    {
 #if (NODE_MODULE_VERSION > 0x000B)
         exports = NanObjectWrapHandle(nativeModuleItr->second);
 #else
