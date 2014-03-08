@@ -63,7 +63,13 @@ void WorkItem::WorkCallback(
     void *workItemPtr)
 {
     WorkItem* workItem = (WorkItem*)workItemPtr;
-    workItem->InstanceWorkCallback();
+
+    // context will be null if this is due to the thread pool
+    // being destroyed, so don't execute the actual callback function
+    if(threadContextPtr != NULL)
+    {
+        workItem->InstanceWorkCallback();
+    }
 
     delete workItem;
 }

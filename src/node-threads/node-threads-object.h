@@ -42,7 +42,7 @@ class NodeThreads : public ObjectWrap
     private:
 
         explicit NodeThreads(string threadPoolKey, uint32_t numThreads);
-        ~NodeThreads();
+        virtual ~NodeThreads();
 
         static NAN_METHOD(ExecuteFunction);
 

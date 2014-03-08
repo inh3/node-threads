@@ -40,7 +40,7 @@ THREAD_POOL_DATA*   CreateThreadPool(
     TASK_QUEUE_DATA *taskQueueData,
     void* (*threadInit)(),
     void (*threadPostInit)(void* threadContext),
-    void (*threadDestory)(void* threadContext));
+    void (*threadDestroy)(void* threadContext));
 
 // this should only be called once per thread pool and prior to destorying the associated task queue
 void                DestroyThreadPool(THREAD_POOL_DATA *threadPool);

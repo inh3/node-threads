@@ -150,6 +150,9 @@ static void DestroyTaskQueueInternal(TASK_QUEUE_DATA *taskQueueData)
 
         // update head node
         taskQueueData->taskQueue->queueHead = queueNode->nextNode;
+
+        queueNode->taskQueueItem->taskItemCallback(
+            NULL, NULL, queueNode->taskQueueItem->taskItemData);
         
         // release queue node memory
         FreeQueueNode(queueNode);

@@ -53,10 +53,16 @@ typedef struct TASK_QUEUE_WORK_DATA_STRUCT
 typedef struct TASK_QUEUE_ITEM_STRUCT
 {
     // reference to work item function
-    void*           (*taskItemFunction)(TASK_QUEUE_WORK_DATA *taskData, void *threadContext, void *workData);
+    void*           (*taskItemFunction)(
+        TASK_QUEUE_WORK_DATA *taskData,
+        void *threadContext,
+        void *workData);
 
     // reference to work item callback function
-    void            (*taskItemCallback)(TASK_QUEUE_WORK_DATA *taskData, void *threadContext, void *callbackData);
+    void            (*taskItemCallback)(
+        TASK_QUEUE_WORK_DATA *taskData,
+        void *threadContext,
+        void *callbackData);
 
     // reference to work item context (this will be passed to the work item function)
     void            *taskItemData;

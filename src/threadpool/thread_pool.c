@@ -128,8 +128,8 @@ static THREAD_FUNC WINAPI threadFunction(void *threadArg)
         // unlock the queue
         SyncUnlockMutex(threadData->taskQueueData->queueMutex);
 
-        // check one more time if work should actually be done AND if the task queue item is valid
-        if((taskQueueItem != 0) && !*(threadData->terminateThread))
+        // the task queue item is valid
+        if(taskQueueItem != 0)
         {
             // store the task id
             threadData->taskQueueWorkData->taskId = taskQueueItem->taskId;
@@ -137,11 +137,8 @@ static THREAD_FUNC WINAPI threadFunction(void *threadArg)
             // execute the task and get the return value
             taskData = taskQueueItem->taskItemFunction(threadData->taskQueueWorkData, threadData->context, taskQueueItem->taskItemData);
 
-            // execute callback if present
-            if(taskQueueItem->taskItemCallback != 0)
-            {
-                taskQueueItem->taskItemCallback(threadData->taskQueueWorkData, threadData->context, taskData);
-            }
+            // execute callback
+            taskQueueItem->taskItemCallback(threadData->taskQueueWorkData, threadData->context, taskData);
 
             // release the task item memory
             free(taskQueueItem);
@@ -178,7 +175,7 @@ THREAD_POOL_DATA* CreateThreadPool(
     TASK_QUEUE_DATA *taskQueueData,
     void* (*threadInit)(void),
     void (*threadPostInit)(void* threadContext),
-    void (*threadDestory)(void* threadContext))
+    void (*threadDestroy)(void* threadContext))
 {
     // loop variable
     unsigned int i = 0;
@@ -225,9 +222,9 @@ THREAD_POOL_DATA* CreateThreadPool(
         {
             threadData->postInit = threadPostInit;
         }
-        if(threadDestory != NULL)
+        if(threadDestroy != NULL)
         {
-            threadData->destroy = threadDestory;
+            threadData->destroy = threadDestroy;
         }
 
         // create the thread
