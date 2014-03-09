@@ -37,6 +37,8 @@ class NodeThreads : public ObjectWrap
         virtual void Unref() { ObjectWrap::Unref(); }
 
         void Destroy();
+        string GetThreadPoolKey();
+        
         void QueueFunctionWorkItem(const char* functionString);
 
     private:

@@ -31,7 +31,8 @@ NodeThreads::NodeThreads(string threadPoolKey, uint32_t numThreads)
         _TaskQueue,
         Thread::ThreadInit,
         Thread::ThreadPostInit,
-        Thread::ThreadDestroy);
+        Thread::ThreadDestroy,
+        (void*)this);
 }
 
 NodeThreads::~NodeThreads()
@@ -52,6 +53,11 @@ void NodeThreads::Destroy()
     _Destroyed = true;
     DestroyThreadPool(_ThreadPool);
     DestroyTaskQueue(_TaskQueue);
+}
+
+string NodeThreads::GetThreadPoolKey()
+{
+    return _ThreadPoolKey;
 }
 
 void NodeThreads::QueueFunctionWorkItem(const char* functionString)

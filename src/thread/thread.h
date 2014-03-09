@@ -21,6 +21,7 @@ using namespace std;
 
 // custom
 #include "persistent-wrap.h"
+#include "node-threads-object.h"
 
 typedef unordered_map<string, PersistentWrap*> NativeMap;
 
@@ -41,13 +42,18 @@ typedef struct thread_context_s
     Persistent<Function>    json_stringify;
     Persistent<Function>    json_parse;
 
+    // thread pool info
+    // does not need to be free'd because it is a reference
+    // to the object that owns the thread pool
+    NodeThreads*            nodeThreads;
+
 } thread_context_t;
 
 class Thread
 {
     public:
         
-        static void*        ThreadInit();
+        static void*        ThreadInit(void* initData);
         static void         ThreadPostInit(void* threadContext);
         static void         ThreadDestroy(void* threadContext);
 

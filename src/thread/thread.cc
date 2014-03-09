@@ -13,7 +13,7 @@
 // custom
 #include "thread-isolate.h"
 
-void* Thread::ThreadInit()
+void* Thread::ThreadInit(void* initData)
 {
     // allocate memory for thread context
     thread_context_t* threadContext = (thread_context_t*)malloc(sizeof(thread_context_t));
@@ -29,6 +29,9 @@ void* Thread::ThreadInit()
 
     // create thread isolate
     threadContext->thread_isolate = Isolate::New();
+
+    // store reference to the node threads object
+    threadContext->nodeThreads = (NodeThreads*)initData;
 
     // store reference to thread context within isolate
     threadContext->thread_isolate->SetData((void*)threadContext);

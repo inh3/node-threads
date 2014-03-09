@@ -41,7 +41,7 @@ FunctionWorkItem::~FunctionWorkItem()
 void* FunctionWorkItem::InstanceWorkFunction()
 {
     printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
-    printf("%s\n", _FunctionString);
+    //printf("%s\n", _FunctionString);
     
     Handle<Function> functionToExecute;
     Handle<Value> scriptResult = Utilities::CompileScriptSource(String::New(_FunctionString));

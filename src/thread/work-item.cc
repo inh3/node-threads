@@ -48,6 +48,7 @@ void* WorkItem::WorkFunction(
         Context::Scope contextScope(threadContext->isolate_context);
 #endif
 
+        printf("[ Thread Pool Key ] %s\n", threadContext->nodeThreads->GetThreadPoolKey().c_str());
         workItem->InstanceWorkFunction();
     }
 

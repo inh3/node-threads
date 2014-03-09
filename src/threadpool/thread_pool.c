@@ -38,10 +38,10 @@ typedef struct THREAD_DATA_STRUCT
     void                    *context;
 
     // reference to initialize method
-    void*                   (*initialize)();
+    void*                   (*initialize)(void* initData);
 
     // reference to post-init method
-    void                    (*postInit)(void *context);
+    void                    (*postInit)(void* context);
 
     // reference to destroy method
     void                    (*destroy)(void* context);
@@ -173,9 +173,10 @@ static THREAD_FUNC WINAPI threadFunction(void *threadArg)
 THREAD_POOL_DATA* CreateThreadPool(
     unsigned int numThreads,
     TASK_QUEUE_DATA *taskQueueData,
-    void* (*threadInit)(void),
+    void* (*threadInit)(void* initData),
     void (*threadPostInit)(void* threadContext),
-    void (*threadDestroy)(void* threadContext))
+    void (*threadDestroy)(void* threadContext),
+    void* initData)
 {
     // loop variable
     unsigned int i = 0;
@@ -216,7 +217,7 @@ THREAD_POOL_DATA* CreateThreadPool(
         if(threadInit != NULL)
         {
             threadData->initialize = threadInit;
-            threadData->context = threadData->initialize();
+            threadData->context = threadData->initialize(initData);
         }
         if(threadPostInit != NULL)
         {
