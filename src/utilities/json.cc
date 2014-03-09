@@ -53,15 +53,15 @@ char* JsonUtility::Stringify(Handle<Value> valueHandle)
 // Node 0.11+ (0.11.3 and below won't compile with these)
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope handleScope(isolate);
+    Local<Function> stringifyFunc = Local<Function>::New(isolate, threadContext->json_stringify);
+    Local<Object> jsonObject = Local<Object>::New(isolate, threadContext->json_object);
 #else
     HandleScope handleScope;
+    Local<Function> stringifyFunc = Local<Function>::New(threadContext->json_stringify);
+    Local<Object> jsonObject = Local<Object>::New(threadContext->json_object);
 #endif
 
-    // get handle to stringify function
-    Local<Function> stringifyFunc = NanPersistentToLocal(threadContext->json_stringify);
-
     // execute stringify
-    Local<Object> jsonObject = NanPersistentToLocal(threadContext->json_object);
     Handle<Value> stringifyResult = stringifyFunc->Call(jsonObject, 1, &(valueHandle));
 
     // only process if the result is valid
@@ -93,16 +93,16 @@ Handle<Value> JsonUtility::Parse(char* objectString)
 // Node 0.11+ (0.11.3 and below won't compile with these)
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope handleScope(isolate);
+    Local<Function> parseFunc = Local<Function>::New(isolate, threadContext->json_parse);
+    Local<Object> jsonObject = Local<Object>::New(isolate, threadContext->json_object);
 #else
     HandleScope handleScope;
+    Local<Function> parseFunc = Local<Function>::New(threadContext->json_parse);
+    Local<Object> jsonObject = Local<Object>::New(threadContext->json_object);
 #endif
-
-    // get handle to stringify function
-    Local<Function> parseFunc = NanPersistentToLocal(threadContext->json_parse);
 
     // execute parse
     Handle<Value> jsonString = String::New(objectString);
-    Local<Object> jsonObject = NanPersistentToLocal(threadContext->json_object);
     Local<Value> valueHandle = parseFunc->Call(jsonObject, 1, &jsonString);
 
     return handleScope.Close(valueHandle);

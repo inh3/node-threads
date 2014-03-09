@@ -15,6 +15,7 @@ using namespace v8;
 #include <string.h>
 
 // custom
+#include "json.h"
 #include "utilities.h"
 
 FunctionWorkItem::FunctionWorkItem(const char* functionString)
@@ -60,7 +61,10 @@ void* FunctionWorkItem::InstanceWorkFunction()
 
     if(!functionToExecute.IsEmpty())
     {
-        functionToExecute->Call(Context::GetCurrent()->Global(), 0, NULL);
+        Handle<Value> workResult = functionToExecute->Call(Context::GetCurrent()->Global(), 0, NULL);
+        //Utilities::PrintObjectProperties(workResult->ToObject());
+        _WorkResult = JsonUtility::Stringify(workResult);
+        printf("** Stringified Result: %s\n", _WorkResult);
     }
 
     return NULL;

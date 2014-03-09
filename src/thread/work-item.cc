@@ -8,11 +8,17 @@
 WorkItem::WorkItem()
 {
     printf("WorkItem::WorkItem\n");
+    _WorkResult = NULL;
 }
 
 WorkItem::~WorkItem()
 {
     printf("WorkItem::~WorkItem\n");
+
+    if(_WorkResult != NULL)
+    {
+        free(_WorkResult);
+    }
 }
 
 void* WorkItem::WorkFunction(

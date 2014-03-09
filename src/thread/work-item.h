@@ -31,6 +31,10 @@ class WorkItem
             TASK_QUEUE_WORK_DATA *taskInfoPtr,
             void *threadContextPtr,
             void *workItemPtr);
+
+    protected:
+
+        char*   _WorkResult;
 };
 
 #endif /* _WORK_ITEM_H_ */
