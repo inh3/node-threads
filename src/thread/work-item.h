@@ -34,7 +34,8 @@ class WorkItem
 
     protected:
 
-        char*   _WorkResult;
+        Persistent<Function>    _CallbackFunction;
+        char*                   _WorkResult;
 };
 
 #endif /* _WORK_ITEM_H_ */

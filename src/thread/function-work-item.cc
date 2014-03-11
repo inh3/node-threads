@@ -18,7 +18,9 @@ using namespace v8;
 #include "json.h"
 #include "utilities.h"
 
-FunctionWorkItem::FunctionWorkItem(const char* functionString)
+FunctionWorkItem::FunctionWorkItem(
+    const char* functionString,
+    Handle<Function> callbackFunction)
 {
     printf("FunctionWorkItem::FunctionWorkItem\n");
     
@@ -31,6 +33,8 @@ FunctionWorkItem::FunctionWorkItem(const char* functionString)
     _FunctionString[0] = '(';
     memcpy(_FunctionString + 1, functionString, fStrLen);
     _FunctionString[fStrLen + 1] = ')';
+
+    _CallbackFunction = 
 }
 
 FunctionWorkItem::~FunctionWorkItem()

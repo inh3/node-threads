@@ -8,7 +8,9 @@ class FunctionWorkItem : public WorkItem
 {
     public:
 
-        FunctionWorkItem(const char* functionString);
+        FunctionWorkItem(
+            const char* functionString
+            Handle<Function> callbackFunction);
         virtual ~FunctionWorkItem();
 
         virtual void*   InstanceWorkFunction();

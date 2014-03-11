@@ -60,9 +60,13 @@ string NodeThreads::GetThreadPoolKey()
     return _ThreadPoolKey;
 }
 
-void NodeThreads::QueueFunctionWorkItem(const char* functionString)
+void NodeThreads::QueueFunctionWorkItem(
+    const char* functionString,
+    Handle<Function> callbackFunction)
 {
-    FunctionWorkItem* functionWorkItem = new FunctionWorkItem(functionString);
+    FunctionWorkItem* functionWorkItem = new FunctionWorkItem(
+        functionString,
+        callbackFunction);
 
     // reference to task queue item to be added
     TASK_QUEUE_ITEM     *taskQueueItem = 0;
@@ -172,7 +176,7 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
 
         String::Utf8Value funcStrValue(funcStrHandle);
-        nodeThread->QueueFunctionWorkItem(*funcStrValue);
+        nodeThread->QueueFunctionWorkItem(*funcStrValue, args[1].As<Function>());
     }
 
     NanReturnUndefined();

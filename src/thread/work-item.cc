@@ -19,6 +19,9 @@ WorkItem::~WorkItem()
     {
         free(_WorkResult);
     }
+
+    _PersistentFunction.Dispose();
+    _PersistentFunction.Clear();
 }
 
 void* WorkItem::WorkFunction(
