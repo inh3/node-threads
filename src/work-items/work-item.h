@@ -16,7 +16,7 @@ class WorkItem
 {
     public:
 
-        WorkItem();
+        WorkItem(Handle<Function> callbackFunction);
         virtual ~WorkItem();
 
         virtual void*   InstanceWorkFunction() = 0;

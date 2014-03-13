@@ -9,10 +9,16 @@
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
 
-WorkItem::WorkItem()
+WorkItem::WorkItem(Handle<Function> callbackFunction)
 {
     printf("WorkItem::WorkItem\n");
     _WorkResult = NULL;
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
+#else
+    _CallbackFunction = Persistent<Function>::New(callbackFunction);
+#endif
 }
 
 // 'delete' can only be called from main thread

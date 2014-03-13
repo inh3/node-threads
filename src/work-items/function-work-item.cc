@@ -20,7 +20,7 @@ using namespace v8;
 
 FunctionWorkItem::FunctionWorkItem(
     const char* functionString,
-    Handle<Function> callbackFunction)
+    Handle<Function> callbackFunction) : WorkItem(callbackFunction)
 {
     printf("FunctionWorkItem::FunctionWorkItem\n");
     
@@ -33,12 +33,6 @@ FunctionWorkItem::FunctionWorkItem(
     _FunctionString[0] = '(';
     memcpy(_FunctionString + 1, functionString, fStrLen);
     _FunctionString[fStrLen + 1] = ')';
-
-#if (NODE_MODULE_VERSION > 0x000B)
-    _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
-#else
-    _CallbackFunction = Persistent<Function>::New(callbackFunction);
-#endif
 }
 
 FunctionWorkItem::~FunctionWorkItem()
