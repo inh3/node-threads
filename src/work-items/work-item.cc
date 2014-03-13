@@ -4,6 +4,10 @@
 
 // custom
 #include "thread.h"
+#include "callback-manager.h"
+
+// callback manager
+static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
 
 WorkItem::WorkItem()
 {
@@ -11,17 +15,19 @@ WorkItem::WorkItem()
     _WorkResult = NULL;
 }
 
+// 'delete' can only be called from main thread
 WorkItem::~WorkItem()
 {
-    printf("WorkItem::~WorkItem\n");
+    static int x = 0;
+    printf("WorkItem::~WorkItem - %u\n", ++x);
 
     if(_WorkResult != NULL)
     {
         free(_WorkResult);
     }
 
-    _PersistentFunction.Dispose();
-    _PersistentFunction.Clear();
+    _CallbackFunction.Dispose();
+    _CallbackFunction.Clear();
 }
 
 void* WorkItem::WorkFunction(
@@ -76,10 +82,24 @@ void WorkItem::WorkCallback(
 
     // context will be null if this is due to the thread pool
     // being destroyed, so don't execute the actual callback function
-    if(threadContextPtr != NULL)
+    // this will only occur on main thread since thread pool is destroying
+    if(threadContextPtr == NULL)
     {
-        workItem->InstanceWorkCallback();
+        delete workItem;
     }
+    else
+    {
+        // perform instance callback
+        workItem->InstanceWorkCallback();
 
-    delete workItem;
+        // add to callback queue
+        callbackManager->AddWorkItem(workItem);
+
+        // send async to main thread
+        thread_context_t* threadContext = (thread_context_t*)threadContextPtr;
+        uv_async_send(threadContext->uv_async_ptr);
+
+        static int x = 0;
+        printf("*** MAKING ASYNC CALLBACK! %u\n", ++x);
+    }
 }

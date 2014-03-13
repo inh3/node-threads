@@ -57,6 +57,8 @@ class Thread
         static void         ThreadPostInit(void* threadContext);
         static void         ThreadDestroy(void* threadContext);
 
+        static void         AsyncCallback(uv_async_t* handle, int status);
+
     private:
 
         // libuv

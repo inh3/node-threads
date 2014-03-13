@@ -39,7 +39,9 @@ class NodeThreads : public ObjectWrap
         void Destroy();
         string GetThreadPoolKey();
         
-        void QueueFunctionWorkItem(const char* functionString);
+        void QueueFunctionWorkItem(
+            const char* functionString,
+            Handle<Function> callbackFunction);
 
     private:
 

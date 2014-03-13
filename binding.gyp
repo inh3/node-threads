@@ -1,7 +1,7 @@
 {
     'targets': [
 
-    # npool .node
+    # node threads .node
     {
         'target_name': 'node-threads',
         'sources': [
@@ -16,8 +16,10 @@
 
             'src/thread/thread.cc',
             'src/thread/thread-isolate.cc',
-            'src/thread/work-item.cc',
-            'src/thread/function-work-item.cc',
+            'src/thread/callback-manager.cc',
+
+            'src/work-items/work-item.cc',
+            'src/work-items/function-work-item.cc',
             
             'src/utilities/utilities.cc',
             'src/utilities/error-handling.cc',
@@ -29,6 +31,7 @@
             './src/node-threads',
             './src/file',
             './src/thread',
+            './src/work-items',
             './src/emulation',
             './src/utilities',
             './src/threadpool',

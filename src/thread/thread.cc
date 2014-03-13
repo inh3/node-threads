@@ -12,6 +12,11 @@
 
 // custom
 #include "thread-isolate.h"
+#include "callback-manager.h"
+#include "work-item.h"
+
+// callback manager
+static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
 
 void* Thread::ThreadInit(void* initData)
 {
@@ -25,7 +30,10 @@ void* Thread::ThreadInit(void* initData)
     // create and initialize async watcher
     threadContext->uv_async_ptr = (uv_async_t*)malloc(sizeof(uv_async_t));
     memset(threadContext->uv_async_ptr, 0, sizeof(uv_async_t));
-    uv_async_init(uv_default_loop(), threadContext->uv_async_ptr, NULL);
+    uv_async_init(
+        uv_default_loop(),
+        threadContext->uv_async_ptr,
+        Thread::AsyncCallback);
 
     // create thread isolate
     threadContext->thread_isolate = Isolate::New();
@@ -113,6 +121,18 @@ void Thread::ThreadDestroy(void* threadContext)
 
     // release the thread context memory
     free(thisContext);
+}
+
+void Thread::AsyncCallback(uv_async_t* handle, int status)
+{
+    printf("Thread::AsyncCallback\n");
+
+    // process all work items awaiting callback
+    WorkItem* workItem = NULL;
+    while((workItem = callbackManager->GetWorkItem()) != 0)
+    {
+        delete workItem;
+    }
 }
 
 void Thread::AsyncCloseCallback(uv_handle_t* handle)

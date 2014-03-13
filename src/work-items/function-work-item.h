@@ -9,7 +9,7 @@ class FunctionWorkItem : public WorkItem
     public:
 
         FunctionWorkItem(
-            const char* functionString
+            const char* functionString,
             Handle<Function> callbackFunction);
         virtual ~FunctionWorkItem();
 

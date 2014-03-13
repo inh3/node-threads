@@ -34,7 +34,11 @@ FunctionWorkItem::FunctionWorkItem(
     memcpy(_FunctionString + 1, functionString, fStrLen);
     _FunctionString[fStrLen + 1] = ')';
 
-    _CallbackFunction = 
+#if (NODE_MODULE_VERSION > 0x000B)
+    _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
+#else
+    _CallbackFunction = Persistent<Function>::New(callbackFunction);
+#endif
 }
 
 FunctionWorkItem::~FunctionWorkItem()
