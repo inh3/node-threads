@@ -11,6 +11,7 @@ using namespace node;
 
 // custom
 #include "thread-isolate.h"
+#include "work-item.h"
 
 /**
  * Gets or creates a thread pool instance.
@@ -89,6 +90,8 @@ NAN_METHOD(SubStack)
     String::Utf8Value dirString(args[0]->ToString());
 
     ThreadIsolate::Initialize(*dirString);
+
+    WorkItem::Initialize();
 
     Local<Object> nodeThreadsModule = Object::New();
     nodeThreadsModule->Set(NanSymbol("getThreadPool"),
