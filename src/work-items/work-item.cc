@@ -5,11 +5,17 @@
 // custom
 #include "thread.h"
 #include "callback-manager.h"
+#include "file_info.h"
+#include "utilities.h"
 
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
 
-WorkItem::WorkItem(Handle<Function> callbackFunction)
+Persistent<Function> WorkItem::_Guid;
+
+WorkItem::WorkItem(
+    Handle<Function> callbackFunction,
+    Handle<Object> workOptions)
 {
     printf("WorkItem::WorkItem\n");
     _WorkResult = NULL;
@@ -19,6 +25,8 @@ WorkItem::WorkItem(Handle<Function> callbackFunction)
 #else
     _CallbackFunction = Persistent<Function>::New(callbackFunction);
 #endif
+
+    ProcessWorkOptions(workOptions);
 }
 
 // 'delete' can only be called from main thread
@@ -32,8 +40,65 @@ WorkItem::~WorkItem()
         free(_WorkResult);
     }
 
+    _WorkOptions.Dispose();
+    _WorkOptions.Clear();
+
     _CallbackFunction.Dispose();
     _CallbackFunction.Clear();
+}
+
+void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
+{
+    NanScope();
+
+    if(workOptions.IsEmpty())
+    {
+        workOptions = Object::New();
+    }
+
+    // set context to default node context if not specified
+    Handle<Value> contextHandle = workOptions->Get(String::NewSymbol("context"));
+    if(contextHandle == Undefined())
+    {
+        Handle<Object> currentContext = Context::GetCurrent()->Global();
+        workOptions->Set(String::NewSymbol("context"), currentContext);
+    }
+
+    // set work id to guid if not specified
+    Handle<Value> workId = workOptions->Get(String::NewSymbol("id"));
+    if(workId == Undefined())
+    {
+        Handle<Value> guidHandle = _Guid->Call(
+            Context::GetCurrent()->Global(),
+            0,
+            NULL);
+        workOptions->Set(String::NewSymbol("id"), guidHandle);
+    }
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    _WorkOptions.Reset(Isolate::GetCurrent(), workOptions);
+#else
+    _WorkOptions = Persistent<Object>::New(workOptions);
+#endif
+}
+
+// static methods -------------------------------------------------------------
+
+void WorkItem::Initialize()
+{
+    NanScope();
+
+    FileInfo guidFile("./src/js/guid.js");
+    Handle<Script> guidScript = Script::New(
+        String::New(guidFile.FileContents()),
+        String::New("guid"));
+    Handle<Value> guidFunction = guidScript->Run();
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    _Guid.Reset(Isolate::GetCurrent(), guidFunction.As<Function>());
+#else
+    _Guid = Persistent<Function>::New(guidFunction.As<Function>());
+#endif
 }
 
 void* WorkItem::WorkFunction(
@@ -104,8 +169,5 @@ void WorkItem::WorkCallback(
         // send async to main thread
         thread_context_t* threadContext = (thread_context_t*)threadContextPtr;
         uv_async_send(threadContext->uv_async_ptr);
-
-        static int x = 0;
-        printf("*** MAKING ASYNC CALLBACK! %u\n", ++x);
     }
 }

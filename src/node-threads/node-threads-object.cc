@@ -62,11 +62,13 @@ string NodeThreads::GetThreadPoolKey()
 
 void NodeThreads::QueueFunctionWorkItem(
     const char* functionString,
-    Handle<Function> callbackFunction)
+    Handle<Function> callbackFunction,
+    Handle<Object> workOptions)
 {
     FunctionWorkItem* functionWorkItem = new FunctionWorkItem(
         functionString,
-        callbackFunction);
+        callbackFunction,
+        workOptions);
 
     // reference to task queue item to be added
     TASK_QUEUE_ITEM     *taskQueueItem = 0;
@@ -152,8 +154,9 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
     NanScope();
 
     Handle<String> funcStrHandle;
+    Handle<Object> workOptions;
 
-    if((args.Length() == 2) 
+    if((args.Length() >= 2) 
         && (args[0]->IsFunction() || args[0]->IsString())
         && (args[1]->IsFunction()))
     {
@@ -164,6 +167,11 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         else if(args[0]->IsString())
         {
             funcStrHandle = args[0].As<String>();
+        }
+
+        if((args.Length() == 3) && args[2]->IsObject())
+        {
+            workOptions = args[2]->ToObject();
         }
     }
     
@@ -176,7 +184,10 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
 
         String::Utf8Value funcStrValue(funcStrHandle);
-        nodeThread->QueueFunctionWorkItem(*funcStrValue, args[1].As<Function>());
+        nodeThread->QueueFunctionWorkItem(
+            *funcStrValue,
+            args[1].As<Function>(),
+            workOptions);
     }
 
     NanReturnUndefined();

@@ -10,10 +10,12 @@ class FunctionWorkItem : public WorkItem
 
         FunctionWorkItem(
             const char* functionString,
-            Handle<Function> callbackFunction);
+            Handle<Function> callbackFunction,
+            Handle<Object> workOptions);
+
         virtual ~FunctionWorkItem();
 
-        virtual void*   InstanceWorkFunction();
+        virtual void    InstanceWorkFunction();
         virtual void    InstanceWorkCallback();
 
     private:

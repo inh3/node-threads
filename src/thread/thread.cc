@@ -131,6 +131,20 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
     WorkItem* workItem = NULL;
     while((workItem = callbackManager->GetWorkItem()) != 0)
     {
+        //create arguments array
+        const unsigned argc = 3;
+        Handle<Value> argv[argc] = { 
+            Undefined(),
+            Null(),
+            workItem->_WorkOptions
+        };
+
+        // make callback on node thread
+        workItem->_CallbackFunction->Call(
+            workItem->_WorkOptions->Get(String::NewSymbol("context")).As<Object>(),
+            argc,
+            argv);
+
         delete workItem;
     }
 }

@@ -20,7 +20,8 @@ using namespace v8;
 
 FunctionWorkItem::FunctionWorkItem(
     const char* functionString,
-    Handle<Function> callbackFunction) : WorkItem(callbackFunction)
+    Handle<Function> callbackFunction,
+    Handle<Object> workOptions) : WorkItem(callbackFunction, workOptions)
 {
     printf("FunctionWorkItem::FunctionWorkItem\n");
     
@@ -37,21 +38,20 @@ FunctionWorkItem::FunctionWorkItem(
 
 FunctionWorkItem::~FunctionWorkItem()
 {
-    printf("FunctionWorkItem::~FunctionWorkItem\n");
+    static int x = 0;
+    printf("FunctionWorkItem::~FunctionWorkItem - %u\n", ++x);
     free(_FunctionString);
 }
 
-void* FunctionWorkItem::InstanceWorkFunction()
+void FunctionWorkItem::InstanceWorkFunction()
 {
-    printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
-    //printf("%s\n", _FunctionString);
+    //printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
     
     Handle<Function> functionToExecute;
     Handle<Value> scriptResult = Utilities::CompileScriptSource(String::New(_FunctionString));
 
     if(scriptResult->IsFunction())
     {
-        printf("[ FunctionWorkItem::InstanceWorkFunction ] - Function\n");
         functionToExecute = scriptResult.As<Function>();
     }
     else if(scriptResult->IsObject() && 
@@ -64,15 +64,11 @@ void* FunctionWorkItem::InstanceWorkFunction()
     if(!functionToExecute.IsEmpty())
     {
         Handle<Value> workResult = functionToExecute->Call(Context::GetCurrent()->Global(), 0, NULL);
-        //Utilities::PrintObjectProperties(workResult->ToObject());
         _WorkResult = JsonUtility::Stringify(workResult);
-        printf("** Stringified Result: %s\n", _WorkResult);
     }
-
-    return NULL;
 }
 
 void FunctionWorkItem::InstanceWorkCallback()
 {
-    printf("FunctionWorkItem::InstanceWorkCallback\n");
+    //printf("FunctionWorkItem::InstanceWorkCallback\n");
 }

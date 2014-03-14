@@ -40,7 +40,9 @@ void Utilities::CopyObject(Handle<Object> toObject, Handle<Object> fromObject)
     }
 }
 
-Handle<Value> Utilities::CompileScriptSource(Handle<String> scriptSource, const char* scriptResourceName)
+Handle<Value> Utilities::CompileScriptSource(
+    Handle<String> scriptSource,
+    const char* scriptResourceName)
 {
     TryCatch tryCatch;
 

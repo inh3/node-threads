@@ -41,7 +41,8 @@ class NodeThreads : public ObjectWrap
         
         void QueueFunctionWorkItem(
             const char* functionString,
-            Handle<Function> callbackFunction);
+            Handle<Function> callbackFunction,
+            Handle<Object> workOptions);
 
     private:
 

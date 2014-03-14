@@ -16,11 +16,16 @@ class WorkItem
 {
     public:
 
-        WorkItem(Handle<Function> callbackFunction);
+        WorkItem(
+            Handle<Function> callbackFunction,
+            Handle<Object> workOptions);
+
         virtual ~WorkItem();
 
-        virtual void*   InstanceWorkFunction() = 0;
+        virtual void    InstanceWorkFunction() = 0;
         virtual void    InstanceWorkCallback() = 0;
+
+        static void     Initialize();
 
         static void*    WorkFunction(
             TASK_QUEUE_WORK_DATA *taskInfoPtr,
@@ -32,10 +37,17 @@ class WorkItem
             void *threadContextPtr,
             void *workItemPtr);
 
-    protected:
-
+        // these are public so they can be accessed in the 
+        // uv_async callback
         Persistent<Function>    _CallbackFunction;
+        Persistent<Object>      _WorkOptions;
         char*                   _WorkResult;
+
+    private:
+
+        void ProcessWorkOptions(Handle<Object> workOptions);
+
+        static Persistent<Function> _Guid;
 };
 
 #endif /* _WORK_ITEM_H_ */
