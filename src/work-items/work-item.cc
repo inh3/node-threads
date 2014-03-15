@@ -68,7 +68,16 @@ void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
     Handle<Value> workId = workOptions->Get(String::NewSymbol("id"));
     if(workId == Undefined())
     {
-        Handle<Value> guidHandle = _Guid->Call(
+#if (NODE_MODULE_VERSION > 0x000B)
+        Local<Function> guidFunction = Local<Function>::New(
+            Isolate::GetCurrent(),
+            _Guid);
+#else
+        Local<Function> guidFunction = Local<Function>::New(
+            _Guid);
+#endif
+
+        Handle<Value> guidHandle = guidFunction->Call(
             Context::GetCurrent()->Global(),
             0,
             NULL);

@@ -14,6 +14,7 @@
 #include "thread-isolate.h"
 #include "callback-manager.h"
 #include "work-item.h"
+#include "utilities.h"
 
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
@@ -125,23 +126,45 @@ void Thread::ThreadDestroy(void* threadContext)
 
 void Thread::AsyncCallback(uv_async_t* handle, int status)
 {
+#if (NODE_MODULE_VERSION > 0x000B)
+    HandleScope scope(Isolate::GetCurrent());
+#else
+    HandleScope scope();
+#endif
+
     printf("Thread::AsyncCallback\n");
 
     // process all work items awaiting callback
     WorkItem* workItem = NULL;
     while((workItem = callbackManager->GetWorkItem()) != 0)
     {
+#if (NODE_MODULE_VERSION > 0x000B)
+        Local<Function> callbackFunction = Local<Function>::New(
+            Isolate::GetCurrent(),
+            workItem->_CallbackFunction);
+
+        Local<Object> workOptions = Local<Object>::New(
+            Isolate::GetCurrent(),
+            workItem->_WorkOptions);
+#else
+        Local<Function> callbackFunction = Local<Function>::New(
+            workItem->_WorkOptions);
+
+        Local<Object> workOptions = Local<Object>::New(
+            workItem->_WorkOptions);
+#endif
+
         //create arguments array
         const unsigned argc = 3;
         Handle<Value> argv[argc] = { 
             Undefined(),
             Null(),
-            workItem->_WorkOptions
+            workOptions
         };
 
         // make callback on node thread
-        workItem->_CallbackFunction->Call(
-            workItem->_WorkOptions->Get(String::NewSymbol("context")).As<Object>(),
+        callbackFunction->Call(
+            workOptions->Get(String::NewSymbol("context")).As<Object>(),
             argc,
             argv);
 
