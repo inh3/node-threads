@@ -19,6 +19,7 @@ WorkItem::WorkItem(
 {
     printf("WorkItem::WorkItem\n");
     _WorkResult = NULL;
+    _Exception = NULL;
 
 #if (NODE_MODULE_VERSION > 0x000B)
     _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
@@ -38,6 +39,11 @@ WorkItem::~WorkItem()
     if(_WorkResult != NULL)
     {
         free(_WorkResult);
+    }
+
+    if(_Exception != NULL)
+    {
+        free(_Exception);
     }
 
     _WorkOptions.Dispose();
@@ -159,6 +165,9 @@ void WorkItem::WorkCallback(
     void *workItemPtr)
 {
     WorkItem* workItem = (WorkItem*)workItemPtr;
+
+    static int x = 0;
+    printf("WorkItem::WorkCallback - %u\n", ++x);
 
     // context will be null if this is due to the thread pool
     // being destroyed, so don't execute the actual callback function

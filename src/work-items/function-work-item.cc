@@ -16,6 +16,7 @@ using namespace v8;
 
 // custom
 #include "json.h"
+#include "error-handling.h"
 #include "utilities.h"
 
 FunctionWorkItem::FunctionWorkItem(
@@ -28,12 +29,14 @@ FunctionWorkItem::FunctionWorkItem(
     size_t fStrLen = strlen(functionString);
 
     // add 3 extra slots for '(' + function + ')' + '\0'
-    _FunctionString = (char*)malloc(fStrLen + 3);
-    memset(_FunctionString, 0, fStrLen + 3);
+    _FunctionString = (char*)malloc(fStrLen + 5);
+    memset(_FunctionString, 0, fStrLen + 5);
 
     _FunctionString[0] = '(';
     memcpy(_FunctionString + 1, functionString, fStrLen);
-    _FunctionString[fStrLen + 1] = ')';
+    _FunctionString[1 + fStrLen] = ')';
+    _FunctionString[2 + fStrLen] = '(';
+    _FunctionString[3 + fStrLen] = ')';
 }
 
 FunctionWorkItem::~FunctionWorkItem()
@@ -45,26 +48,44 @@ FunctionWorkItem::~FunctionWorkItem()
 
 void FunctionWorkItem::InstanceWorkFunction()
 {
-    //printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
+    printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    HandleScope scope(Isolate::GetCurrent());
+#else
+    HandleScope scope;
+#endif
     
-    Handle<Function> functionToExecute;
-    Handle<Value> scriptResult = Utilities::CompileScriptSource(String::New(_FunctionString));
+    TryCatch tryCatch;
 
-    if(scriptResult->IsFunction())
-    {
-        functionToExecute = scriptResult.As<Function>();
-    }
-    else if(scriptResult->IsObject() && 
-        !(scriptResult.As<Object>()->GetHiddenValue(String::New("exception")).IsEmpty()))
-    {
-        printf("[ FunctionWorkItem::InstanceWorkFunction ] - Error\n");
-        //args[1].As<Function>()->Call(args.This(), 1, &(scriptResult));
-    }
+    Handle<Script> compiledScript;
+    Handle<Value> scriptResult;
+    Handle<Object> exceptionObject;
 
-    if(!functionToExecute.IsEmpty())
+    //String::Utf8Value scriptSource(String::New(_FunctionString));
+    //printf("%s\n", *scriptSource);
+    compiledScript = Script::Compile(String::New(_FunctionString));
+
+    // check for exception on compile
+    if(compiledScript.IsEmpty() || tryCatch.HasCaught())
     {
-        Handle<Value> workResult = functionToExecute->Call(Context::GetCurrent()->Global(), 0, NULL);
-        _WorkResult = JsonUtility::Stringify(workResult);
+        exceptionObject = ErrorHandling::HandleException(&tryCatch);
+        _Exception = JsonUtility::Stringify(exceptionObject);
+    }
+    else
+    {
+        scriptResult = compiledScript->Run();
+
+        // check that running script didn't throw errors
+        if(scriptResult.IsEmpty() || tryCatch.HasCaught())
+        {
+            exceptionObject = ErrorHandling::HandleException(&tryCatch);
+            _Exception = JsonUtility::Stringify(exceptionObject);
+        }
+        else
+        {
+            _WorkResult = JsonUtility::Stringify(scriptResult);
+        }
     }
 }
 

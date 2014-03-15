@@ -14,6 +14,7 @@
 #include "thread-isolate.h"
 #include "callback-manager.h"
 #include "work-item.h"
+#include "json.h"
 #include "utilities.h"
 
 // callback manager
@@ -99,11 +100,6 @@ void Thread::ThreadDestroy(void* threadContext)
         }
         thisContext->native_modules->clear();
 
-        // dispose of json
-        thisContext->json_stringify.Dispose();
-        thisContext->json_parse.Dispose();
-        thisContext->json_object.Dispose();
-
         // dispose of js context
         thisContext->isolate_context.Dispose();
     }
@@ -129,7 +125,7 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope scope(Isolate::GetCurrent());
 #else
-    HandleScope scope();
+    HandleScope scope;
 #endif
 
     printf("Thread::AsyncCallback\n");
@@ -148,18 +144,23 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
             workItem->_WorkOptions);
 #else
         Local<Function> callbackFunction = Local<Function>::New(
-            workItem->_WorkOptions);
+            workItem->_CallbackFunction);
 
         Local<Object> workOptions = Local<Object>::New(
             workItem->_WorkOptions);
 #endif
+        Handle<Value> exceptionHandle = JsonUtility::Parse(workItem->_Exception);
+        Handle<Value> workResultHandle = JsonUtility::Parse(workItem->_WorkResult);
 
         //create arguments array
         const unsigned argc = 3;
         Handle<Value> argv[argc] = { 
-            Undefined(),
-            Null(),
-            workOptions
+            // error
+            (exceptionHandle == Undefined() ? (Handle<Value>)Null() : exceptionHandle),
+            // info
+            workOptions,
+            // result
+            workResultHandle
         };
 
         // make callback on node thread

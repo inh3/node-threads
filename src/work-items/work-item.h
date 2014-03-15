@@ -41,6 +41,7 @@ class WorkItem
         // uv_async callback
         Persistent<Function>    _CallbackFunction;
         Persistent<Object>      _WorkOptions;
+        char*                   _Exception;
         char*                   _WorkResult;
 
     private:

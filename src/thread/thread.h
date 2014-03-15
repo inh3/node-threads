@@ -37,11 +37,6 @@ typedef struct thread_context_s
     // native node modules
     NativeMap*              native_modules;
 
-    // json
-    Persistent<Object>      json_object;
-    Persistent<Function>    json_stringify;
-    Persistent<Function>    json_parse;
-
     // thread pool info
     // does not need to be free'd because it is a reference
     // to the object that owns the thread pool

@@ -59,9 +59,6 @@ void ThreadIsolate::InitializeGlobalContext()
     Handle<Object> globalContext = threadContext->isolate_context->Global();
 #endif
 
-    // initialize the json object
-    JsonUtility::Initialize();
-
     // global namespace object
     globalContext->Set(String::NewSymbol("global"), Object::New());
 

@@ -12,9 +12,6 @@ class JsonUtility
 {
     public:
 
-        // call once per isolate
-        static void             Initialize();
-
         static char*            Stringify(Handle<Value> v8Handle);
         static Handle<Value>    Parse(char* jsonObject);
 };

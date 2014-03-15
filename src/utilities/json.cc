@@ -13,16 +13,10 @@
 // custom source
 #include "utilities.h"
 
-void JsonUtility::Initialize()
+char* JsonUtility::Stringify(Handle<Value> valueHandle)
 {
-    // get reference to current isolate
-    Isolate* isolate = Isolate::GetCurrent();
-
-    // get reference to thread context for this isolate
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
-
-// Node 0.11+ (0.11.3 and below won't compile with these)
 #if (NODE_MODULE_VERSION > 0x000B)
+    Isolate* isolate = Isolate::GetCurrent();
     HandleScope handleScope(isolate);
 #else
     HandleScope handleScope;
@@ -31,35 +25,7 @@ void JsonUtility::Initialize()
     // get reference to JSON object
     Handle<Object> contextObject = Context::GetCurrent()->Global();
     Handle<Object> jsonObject = contextObject->Get(v8::String::New("JSON"))->ToObject();
-    NanAssignPersistent(Object, threadContext->json_object, jsonObject);
-
-    // store reference to stringify
     Handle<Function> stringifyFunc = jsonObject->Get(v8::String::New("stringify")).As<Function>();
-    NanAssignPersistent(Function, threadContext->json_stringify, stringifyFunc);
-
-    // store reference to parse
-    Handle<Function> parseFunc = jsonObject->Get(v8::String::New("parse")).As<Function>();
-    NanAssignPersistent(Function, threadContext->json_parse, parseFunc);
-}
-
-char* JsonUtility::Stringify(Handle<Value> valueHandle)
-{
-    // get reference to current isolate
-    Isolate* isolate = Isolate::GetCurrent();
-
-    // get reference to thread context for this isolate
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
-
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope handleScope(isolate);
-    Local<Function> stringifyFunc = Local<Function>::New(isolate, threadContext->json_stringify);
-    Local<Object> jsonObject = Local<Object>::New(isolate, threadContext->json_object);
-#else
-    HandleScope handleScope;
-    Local<Function> stringifyFunc = Local<Function>::New(threadContext->json_stringify);
-    Local<Object> jsonObject = Local<Object>::New(threadContext->json_object);
-#endif
 
     // execute stringify
     Handle<Value> stringifyResult = stringifyFunc->Call(jsonObject, 1, &(valueHandle));
@@ -84,22 +50,23 @@ char* JsonUtility::Stringify(Handle<Value> valueHandle)
 
 Handle<Value> JsonUtility::Parse(char* objectString)
 {
-    // get reference to current isolate
-    Isolate* isolate = Isolate::GetCurrent();
-
-    // get reference to thread context for this isolate
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
-
-// Node 0.11+ (0.11.3 and below won't compile with these)
 #if (NODE_MODULE_VERSION > 0x000B)
+    Isolate* isolate = Isolate::GetCurrent();
     HandleScope handleScope(isolate);
-    Local<Function> parseFunc = Local<Function>::New(isolate, threadContext->json_parse);
-    Local<Object> jsonObject = Local<Object>::New(isolate, threadContext->json_object);
 #else
     HandleScope handleScope;
-    Local<Function> parseFunc = Local<Function>::New(threadContext->json_parse);
-    Local<Object> jsonObject = Local<Object>::New(threadContext->json_object);
 #endif
+
+    // short circuit if bad object
+    if(objectString == NULL)
+    {
+        return handleScope.Close(Undefined());
+    }
+
+    // get reference to JSON object
+    Handle<Object> contextObject = Context::GetCurrent()->Global();
+    Handle<Object> jsonObject = contextObject->Get(v8::String::New("JSON"))->ToObject();
+    Handle<Function> parseFunc = jsonObject->Get(v8::String::New("parse")).As<Function>();
 
     // execute parse
     Handle<Value> jsonString = String::New(objectString);
