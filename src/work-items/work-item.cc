@@ -15,7 +15,8 @@ Persistent<Function> WorkItem::_Guid;
 
 WorkItem::WorkItem(
     Handle<Function> callbackFunction,
-    Handle<Object> workOptions)
+    Handle<Object> workOptions,
+    Handle<Object> calleeObject)
 {
     printf("WorkItem::WorkItem\n");
     _WorkResult = NULL;
@@ -28,6 +29,14 @@ WorkItem::WorkItem(
 #endif
 
     ProcessWorkOptions(workOptions);
+
+    String::Utf8Value fileNameStr(calleeObject->Get(
+        String::NewSymbol("__filename")));
+    String::Utf8Value dirNameStr(calleeObject->Get(
+        String::NewSymbol("__dirname")));
+
+    _FileName.assign(*fileNameStr);
+    _DirName.assign(*dirNameStr);
 }
 
 // 'delete' can only be called from main thread
@@ -142,17 +151,26 @@ void* WorkItem::WorkFunction(
 // Node 0.11+ (0.11.3 and below won't compile with these)
 #if (NODE_MODULE_VERSION > 0x000B)
         HandleScope handleScope(isolate);
-
-        // enter thread specific context
         Context::Scope contextScope(isolate, threadContext->isolate_context);
+        Handle<Object> contextObject = isolate->GetCurrentContext()->Global();
 #else
         HandleScope handleScope;
-
-        // enter thread specific context
         Context::Scope contextScope(threadContext->isolate_context);
+        Handle<Object> contextObject = Context::GetCurrent()->Global();
 #endif
 
-        printf("[ Thread Pool Key ] %s\n", threadContext->nodeThreads->GetThreadPoolKey().c_str());
+        // set __filename and __dirname
+        contextObject->Set(
+            String::NewSymbol("__filename"),
+            String::New(workItem->_FileName.c_str()));
+
+        contextObject->Set(
+            String::NewSymbol("__dirname"),
+            String::New(workItem->_DirName.c_str()));
+
+        printf("[ Thread Pool Key ] %s\n",
+            threadContext->nodeThreads->GetThreadPoolKey().c_str());
+        
         workItem->InstanceWorkFunction();
     }
 

@@ -22,7 +22,9 @@ using namespace v8;
 FunctionWorkItem::FunctionWorkItem(
     const char* functionString,
     Handle<Function> callbackFunction,
-    Handle<Object> workOptions) : WorkItem(callbackFunction, workOptions)
+    Handle<Object> workOptions,
+    Handle<Object> calleeObject)
+    : WorkItem(callbackFunction, workOptions, calleeObject)
 {
     printf("FunctionWorkItem::FunctionWorkItem\n");
     

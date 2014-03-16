@@ -11,7 +11,8 @@ class FunctionWorkItem : public WorkItem
         FunctionWorkItem(
             const char* functionString,
             Handle<Function> callbackFunction,
-            Handle<Object> workOptions);
+            Handle<Object> workOptions,
+            Handle<Object> calleeObject);
 
         virtual ~FunctionWorkItem();
 

@@ -88,12 +88,14 @@ string NodeThreads::GetThreadPoolKey()
 void NodeThreads::QueueFunctionWorkItem(
     const char* functionString,
     Handle<Function> callbackFunction,
-    Handle<Object> workOptions)
+    Handle<Object> workOptions,
+    Handle<Object> calleeObject)
 {
     FunctionWorkItem* functionWorkItem = new FunctionWorkItem(
         functionString,
         callbackFunction,
-        workOptions);
+        workOptions,
+        calleeObject);
 
     // reference to task queue item to be added
     TASK_QUEUE_ITEM     *taskQueueItem = 0;
@@ -174,23 +176,7 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
 {
     NanScope();
 
-#if (NODE_MODULE_VERSION > 0x000B)
-        Local<Function> strackTraceFunction = Local<Function>::New(
-            Isolate::GetCurrent(),
-            StackTrace);
-        Local<Value> pathModule = Local<Object>::New(
-            Isolate::GetCurrent(),
-            Path);
-#else
-        Local<Function> strackTraceFunction = Local<Function>::New(StackTrace);
-        Local<Value> pathModule = Local<Object>::New(Path);
-#endif
-
-    // get the __filename and __dirname properties
-    Handle<Value> fileObject = strackTraceFunction->Call(
-        Context::GetCurrent()->Global(),
-        1,
-        &pathModule);
+    Handle<Object> calleeObject = GetCalleeInfo().As<Object>();
 
     Handle<String> funcStrHandle;
     Handle<Object> workOptions;
@@ -226,8 +212,36 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         nodeThread->QueueFunctionWorkItem(
             *funcStrValue,
             args[1].As<Function>(),
-            workOptions);
+            workOptions,
+            calleeObject);
     }
 
     NanReturnValue(workOptions->Get(String::NewSymbol("id")));
+}
+
+// node helpers ---------------------------------------------------------------
+
+Handle<Value> NodeThreads::GetCalleeInfo()
+{
+    NanScope();
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    Local<Function> strackTraceFunction = Local<Function>::New(
+        Isolate::GetCurrent(),
+        StackTrace);
+    Local<Value> pathModule = Local<Object>::New(
+        Isolate::GetCurrent(),
+        Path);
+#else
+    Local<Function> strackTraceFunction = Local<Function>::New(StackTrace);
+    Local<Value> pathModule = Local<Object>::New(Path);
+#endif
+
+    // get the __filename and __dirname properties
+    Handle<Value> calleeObject = strackTraceFunction->Call(
+        Context::GetCurrent()->Global(),
+        1,
+        &pathModule);
+
+    return scope.Close(calleeObject);
 }

@@ -94,9 +94,6 @@ void ThreadIsolate::InitializeGlobalContext()
 
     // attach object to context
     globalContext->Set(String::NewSymbol("console"), consoleObject);
-
-    // create __dirname based on process directory
-    globalContext->Set(String::NewSymbol("__dirname"), String::New(_ProcessDir.c_str()));
 }
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)

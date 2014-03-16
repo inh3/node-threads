@@ -47,7 +47,8 @@ class NodeThreads : public ObjectWrap
         void QueueFunctionWorkItem(
             const char* functionString,
             Handle<Function> callbackFunction,
-            Handle<Object> workOptions);
+            Handle<Object> workOptions,
+            Handle<Object> calleeObject);
 
     private:
 
@@ -55,6 +56,8 @@ class NodeThreads : public ObjectWrap
         virtual ~NodeThreads();
 
         static NAN_METHOD(ExecuteFunction);
+
+        static Handle<Value> GetCalleeInfo();
 
         string                  _ThreadPoolKey;
         uint32_t                _NumThreads;

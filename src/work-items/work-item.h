@@ -9,6 +9,10 @@ using namespace v8;
 
 #include "nan.h"
 
+// C++
+#include <string>
+using namespace std;
+
 // threadpool
 #include "task_queue.h"
 
@@ -18,7 +22,8 @@ class WorkItem
 
         WorkItem(
             Handle<Function> callbackFunction,
-            Handle<Object> workOptions);
+            Handle<Object> workOptions,
+            Handle<Object> calleeObject);
 
         virtual ~WorkItem();
 
@@ -43,6 +48,10 @@ class WorkItem
         Persistent<Object>      _WorkOptions;
         char*                   _Exception;
         char*                   _WorkResult;
+
+        // __filename and __dirname to be set in context
+        string                  _FileName;
+        string                  _DirName;
 
     private:
 
