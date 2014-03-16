@@ -190,5 +190,5 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
             workOptions);
     }
 
-    NanReturnUndefined();
+    NanReturnValue(workOptions->Get(String::NewSymbol("id")));
 }

@@ -25,7 +25,7 @@ class WorkItem
         virtual void    InstanceWorkFunction() = 0;
         virtual void    InstanceWorkCallback() = 0;
 
-        static void     Initialize();
+        static void     Initialize(const char* moduleDir);
 
         static void*    WorkFunction(
             TASK_QUEUE_WORK_DATA *taskInfoPtr,

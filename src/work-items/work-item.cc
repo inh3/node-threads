@@ -99,11 +99,14 @@ void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 
 // static methods -------------------------------------------------------------
 
-void WorkItem::Initialize()
+void WorkItem::Initialize(const char* moduleDir)
 {
     NanScope();
 
-    FileInfo guidFile("./src/js/guid.js");
+    string guidPath;
+    guidPath.assign(moduleDir);
+    guidPath.append("/src/js/guid.js");
+    FileInfo guidFile(guidPath.c_str());
     Handle<Script> guidScript = Script::New(
         String::New(guidFile.FileContents()),
         String::New("guid"));

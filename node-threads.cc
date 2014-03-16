@@ -95,7 +95,7 @@ NAN_METHOD(SubStack)
     String::Utf8Value processDirString(args[1]->ToString());
     ThreadIsolate::Initialize(*processDirString);
 
-    WorkItem::Initialize();
+    WorkItem::Initialize(*dirString);
 
     Local<Object> nodeThreadsModule = Object::New();
     nodeThreadsModule->Set(NanSymbol("getThreadPool"),
