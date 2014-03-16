@@ -11,18 +11,30 @@
 #include "persistent-wrap.h"
 #include "utilities.h"
 
+string Require::ModuleDir;
+
 void Require::InitializePerIsolate()
 {
-    FileInfo utilFile("./src/js/util.js");
+    string modulePath;
+
+    modulePath.assign(Require::ModuleDir);
+    modulePath.append("/src/js/util.js");
+    FileInfo utilFile(modulePath.c_str());
     LoadNativeModule(String::New("util"), &utilFile);
 
-    FileInfo pathFile("./src/js/path.js");
+    modulePath.assign(Require::ModuleDir);
+    modulePath.append("/src/js/path.js");
+    FileInfo pathFile(modulePath.c_str());
     LoadNativeModule(String::New("path"), &pathFile);
 
-    FileInfo assertFile("./src/js/assert.js");
+    modulePath.assign(Require::ModuleDir);
+    modulePath.append("/src/js/assert.js");
+    FileInfo assertFile(modulePath.c_str());
     LoadNativeModule(String::New("assert"), &assertFile);
 
-    FileInfo consoleFile("./src/js/console.js");
+    modulePath.assign(Require::ModuleDir);
+    modulePath.append("/src/js/console.js");
+    FileInfo consoleFile(modulePath.c_str());
     LoadNativeModule(String::New("console"), &consoleFile);
 }
 

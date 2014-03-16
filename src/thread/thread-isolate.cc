@@ -10,7 +10,7 @@
 #include "utilities.h"
 
 bool ThreadIsolate::_IsInitialized = false;
-string ThreadIsolate::_ModuleDir;
+string ThreadIsolate::_ProcessDir;
 
 // this should only be called from main thread
 void ThreadIsolate::Initialize(const char* dirString)
@@ -20,7 +20,7 @@ void ThreadIsolate::Initialize(const char* dirString)
     {
         _IsInitialized = true;
 
-        _ModuleDir.assign(dirString);
+        _ProcessDir.assign(dirString);
 
         Process::Initialize();
     }
@@ -94,6 +94,9 @@ void ThreadIsolate::InitializeGlobalContext()
 
     // attach object to context
     globalContext->Set(String::NewSymbol("console"), consoleObject);
+
+    // create __dirname based on process directory
+    globalContext->Set(String::NewSymbol("__dirname"), String::New(_ProcessDir.c_str()));
 }
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)

@@ -42,7 +42,7 @@ class ThreadIsolate
     private:
 
         static bool         _IsInitialized;
-        static string       _ModuleDir;
+        static string       _ProcessDir;
 };
 
 #endif /* _THREAD_ISOLATE_H_ */

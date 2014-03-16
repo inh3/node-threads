@@ -12,6 +12,7 @@ using namespace node;
 // custom
 #include "thread-isolate.h"
 #include "work-item.h"
+#include "require.h"
 
 /**
  * Gets or creates a thread pool instance.
@@ -86,10 +87,13 @@ NAN_METHOD(SubStack)
 {
     NanScope();
 
-    // get ref to the file and dir name of module
+    // get ref to the module directory
     String::Utf8Value dirString(args[0]->ToString());
+    Require::ModuleDir.assign(*dirString);
 
-    ThreadIsolate::Initialize(*dirString);
+    // get ref to the process directory
+    String::Utf8Value processDirString(args[1]->ToString());
+    ThreadIsolate::Initialize(*processDirString);
 
     WorkItem::Initialize();
 

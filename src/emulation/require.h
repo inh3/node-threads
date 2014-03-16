@@ -7,6 +7,10 @@
 using namespace v8;
 using namespace node;
 
+// C++
+#include <string>
+using namespace std;
+
 #include "nan.h"
 
 // custom
@@ -20,6 +24,8 @@ class Require
         static void InitializePerIsolate();
         
         static NAN_METHOD(RequireMethod);
+
+        static string ModuleDir;
 
     private:
 
