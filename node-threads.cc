@@ -8,6 +8,7 @@ using namespace node;
 
 // node threads
 #include "node-threads-factory.h"
+#include "node-threads-object.h"
 
 // custom
 #include "thread-isolate.h"
@@ -90,11 +91,11 @@ NAN_METHOD(SubStack)
     // get ref to the module directory
     String::Utf8Value dirString(args[0]->ToString());
     Require::ModuleDir.assign(*dirString);
+    NodeThreads::Initialize(*dirString);
 
     // get ref to the process directory
     String::Utf8Value processDirString(args[1]->ToString());
     ThreadIsolate::Initialize(*processDirString);
-
     WorkItem::Initialize(*dirString);
 
     Local<Object> nodeThreadsModule = Object::New();

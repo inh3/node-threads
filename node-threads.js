@@ -1,7 +1,7 @@
 // export the constructor function
 var NodeThreads = null;
 
-console.log(module);
+//console.log(module);
 
 try {
     NodeThreads = require('./build/Release/node-threads')(__dirname, process.cwd());

@@ -14,8 +14,33 @@ using namespace node;
 #include "work-item.h"
 #include "function-work-item.h"
 #include "utilities.h"
+#include "file_info.h"
+
+Persistent<Function> NodeThreads::Constructor;
+Persistent<Function> NodeThreads::EventEmitter;
+Persistent<Object> NodeThreads::Path;
+Persistent<Value> NodeThreads::NumCPUs;
+Persistent<Function> NodeThreads::StackTrace;
 
 // Instance -------------------------------------------------------------------
+
+void NodeThreads::Initialize(const char* moduleDir)
+{
+    string stackPath;
+    stackPath.assign(moduleDir);
+    stackPath.append("/src/js/stack.js");
+    FileInfo stackFile(stackPath.c_str());
+    Handle<Script> stackScript = Script::New(
+        String::New(stackFile.FileContents()),
+        String::New("stack"));
+    Handle<Value> stackTraceFunction = stackScript->Run();
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    StackTrace.Reset(Isolate::GetCurrent(), stackTraceFunction.As<Function>());
+#else
+    StackTrace = Persistent<Function>::New(stackTraceFunction.As<Function>());
+#endif
+}
 
 NodeThreads::NodeThreads(string threadPoolKey, uint32_t numThreads)
 {
@@ -95,10 +120,6 @@ void NodeThreads::QueueFunctionWorkItem(
 
 // Node -----------------------------------------------------------------------
 
-Persistent<Function> NodeThreads::Constructor;
-Persistent<Function> NodeThreads::EventEmitter;
-Persistent<Value> NodeThreads::NumCPUs;
-
 NAN_METHOD(NodeThreads::New)
 {
     NanScope();
@@ -152,6 +173,24 @@ NAN_GETTER(NodeThreads::GetNumThreads)
 NAN_METHOD(NodeThreads::ExecuteFunction)
 {
     NanScope();
+
+#if (NODE_MODULE_VERSION > 0x000B)
+        Local<Function> strackTraceFunction = Local<Function>::New(
+            Isolate::GetCurrent(),
+            StackTrace);
+        Local<Value> pathModule = Local<Object>::New(
+            Isolate::GetCurrent(),
+            Path);
+#else
+        Local<Function> strackTraceFunction = Local<Function>::New(StackTrace);
+        Local<Value> pathModule = Local<Object>::New(Path);
+#endif
+
+    // get the __filename and __dirname properties
+    Handle<Value> fileObject = strackTraceFunction->Call(
+        Context::GetCurrent()->Global(),
+        1,
+        &pathModule);
 
     Handle<String> funcStrHandle;
     Handle<Object> workOptions;

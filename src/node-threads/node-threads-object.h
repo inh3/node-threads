@@ -29,7 +29,12 @@ class NodeThreads : public ObjectWrap
 
         static Persistent<Function> Constructor;
         static Persistent<Function> EventEmitter;
+        static Persistent<Object> Path;
         static Persistent<Value> NumCPUs;
+
+        static Persistent<Function> StackTrace;
+
+        static void Initialize(const char* moduleDir);
 
         // provide public access to Node's ObjectWrap
         // Ref() and Unref() functions for use by the factory

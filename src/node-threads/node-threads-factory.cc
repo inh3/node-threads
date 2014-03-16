@@ -28,6 +28,14 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
         NodeThreads::EventEmitter, 
         eventsModule->Get(String::NewSymbol("EventEmitter")).As<Function>());
 
+    // store reference to path
+    args[0] = String::New("path");
+    Local<Object> pathModule = requireFunction->Call(module, 1, args)->ToObject();
+    NanAssignPersistent(
+        Object,
+        NodeThreads::Path, 
+        pathModule);
+
     // store number of cpu cores
     args[0] = String::New("os");
     Local<Object> osModule = requireFunction->Call(module, 1, args)->ToObject();

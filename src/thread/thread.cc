@@ -15,7 +15,6 @@
 #include "callback-manager.h"
 #include "work-item.h"
 #include "json.h"
-#include "error-handling.h"
 #include "utilities.h"
 
 // callback manager
