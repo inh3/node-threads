@@ -15,6 +15,7 @@
 #include "callback-manager.h"
 #include "work-item.h"
 #include "json.h"
+#include "error-handling.h"
 #include "utilities.h"
 
 // callback manager
@@ -163,11 +164,22 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
             workResultHandle
         };
 
+#if (NODE_MODULE_VERSION <= 0x000B)
+        TryCatch tryCatch;
+#endif
+
         // make callback on node thread
         callbackFunction->Call(
             workOptions->Get(String::NewSymbol("context")).As<Object>(),
             argc,
             argv);
+
+#if (NODE_MODULE_VERSION <= 0x000B)
+        if(tryCatch.HasCaught())
+        {
+            tryCatch.ReThrow();
+        }
+#endif
 
         delete workItem;
     }
