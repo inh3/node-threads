@@ -48,7 +48,8 @@ class NodeThreads : public ObjectWrap
             const char* functionString,
             Handle<Function> callbackFunction,
             Handle<Object> workOptions,
-            Handle<Object> calleeObject);
+            Handle<Object> calleeObject,
+            Handle<Object> nodeThreads);
 
     private:
 

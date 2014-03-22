@@ -89,13 +89,15 @@ void NodeThreads::QueueFunctionWorkItem(
     const char* functionString,
     Handle<Function> callbackFunction,
     Handle<Object> workOptions,
-    Handle<Object> calleeObject)
+    Handle<Object> calleeObject,
+    Handle<Object> nodeThreads)
 {
     FunctionWorkItem* functionWorkItem = new FunctionWorkItem(
         functionString,
         callbackFunction,
         workOptions,
-        calleeObject);
+        calleeObject,
+        nodeThreads);
 
     // reference to task queue item to be added
     TASK_QUEUE_ITEM     *taskQueueItem = 0;
@@ -181,10 +183,10 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
     Handle<String> funcStrHandle;
     Handle<Object> workOptions;
 
-    if((args.Length() >= 2) 
-        && (args[0]->IsFunction() || args[0]->IsString())
-        && (args[1]->IsFunction()))
+    if((args.Length() >= 1) 
+        && (args[0]->IsFunction() || args[0]->IsString()))
     {
+        // check first argument as function
         if(args[0]->IsFunction())
         {
             funcStrHandle = args[0].As<Function>()->ToString();
@@ -194,15 +196,21 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
             funcStrHandle = args[0].As<String>();
         }
 
+        // check if the context object is valid
         if((args.Length() == 3) && args[2]->IsObject())
         {
             workOptions = args[2]->ToObject();
+        }
+        else
+        {
+            workOptions = Object::New();
         }
     }
     
     if(funcStrHandle.IsEmpty())
     {
         ThrowException(Exception::TypeError(String::New("Invalid parameter(s) passed to 'executeFunction(...)'\n")));
+        NanReturnUndefined();
     }
     else
     {
@@ -213,7 +221,8 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
             *funcStrValue,
             args[1].As<Function>(),
             workOptions,
-            calleeObject);
+            calleeObject,
+            args.This());
     }
 
     NanReturnValue(workOptions->Get(String::NewSymbol("id")));

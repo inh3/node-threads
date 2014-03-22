@@ -135,17 +135,10 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
     while((workItem = callbackManager->GetWorkItem()) != 0)
     {
 #if (NODE_MODULE_VERSION > 0x000B)
-        Local<Function> callbackFunction = Local<Function>::New(
-            Isolate::GetCurrent(),
-            workItem->_CallbackFunction);
-
         Local<Object> workOptions = Local<Object>::New(
             Isolate::GetCurrent(),
             workItem->_WorkOptions);
 #else
-        Local<Function> callbackFunction = Local<Function>::New(
-            workItem->_CallbackFunction);
-
         Local<Object> workOptions = Local<Object>::New(
             workItem->_WorkOptions);
 #endif
@@ -157,33 +150,10 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
         workOptions->Set(
             String::NewSymbol("threadpool"), String::New(workItem->_ThreadPoolKey.c_str()));
 
-        //create arguments array
-        const unsigned argc = 3;
-        Handle<Value> argv[argc] = { 
-            // error
+        workItem->AsyncCallback(
             (exceptionHandle == Undefined() ? (Handle<Value>)Null() : exceptionHandle),
-            // info
             workOptions,
-            // result
-            workResultHandle
-        };
-
-#if (NODE_MODULE_VERSION <= 0x000B)
-        TryCatch tryCatch;
-#endif
-
-        // make callback on node thread
-        callbackFunction->Call(
-            workOptions->Get(String::NewSymbol("context")).As<Object>(),
-            argc,
-            argv);
-
-#if (NODE_MODULE_VERSION <= 0x000B)
-        if(tryCatch.HasCaught())
-        {
-            tryCatch.ReThrow();
-        }
-#endif
+            workResultHandle);
 
         delete workItem;
     }

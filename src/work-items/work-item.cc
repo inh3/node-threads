@@ -19,7 +19,8 @@ Persistent<Function> WorkItem::_Guid;
 WorkItem::WorkItem(
     Handle<Function> callbackFunction,
     Handle<Object> workOptions,
-    Handle<Object> calleeObject)
+    Handle<Object> calleeObject,
+    Handle<Object> nodeThreads)
 {
     printf("WorkItem::WorkItem\n");
     _WorkResult = NULL;
@@ -27,8 +28,10 @@ WorkItem::WorkItem(
 
 #if (NODE_MODULE_VERSION > 0x000B)
     _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
+    _NodeThreads.Reset(Isolate::GetCurrent(), nodeThreads);
 #else
     _CallbackFunction = Persistent<Function>::New(callbackFunction);
+    _NodeThreads = Persistent<Object>::New(nodeThreads);
 #endif
 
     ProcessWorkOptions(workOptions);
@@ -63,6 +66,9 @@ WorkItem::~WorkItem()
 
     _CallbackFunction.Dispose();
     _CallbackFunction.Clear();
+
+    _NodeThreads.Dispose();
+    _NodeThreads.Clear();
 }
 
 void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
@@ -107,6 +113,45 @@ void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 #else
     _WorkOptions = Persistent<Object>::New(workOptions);
 #endif
+}
+
+void WorkItem::AsyncCallback(
+    Handle<Value> errorHandle,
+    Handle<Value> infoHandle,
+    Handle<Value> resultHandle)
+{
+#if (NODE_MODULE_VERSION > 0x000B)
+    HandleScope scope(Isolate::GetCurrent());
+    Local<Object> nodeThreads = Local<Object>::New(
+            Isolate::GetCurrent(),
+            _NodeThreads);
+#else
+    HandleScope scope;
+     Local<Object> nodeThreads = Local<Object>::New(
+            _NodeThreads);
+#endif
+
+    Handle<Object> dataObject = Object::New();
+    dataObject->Set(String::NewSymbol("error"), errorHandle);
+    dataObject->Set(String::NewSymbol("info"), infoHandle);
+    dataObject->Set(String::NewSymbol("result"), resultHandle);
+
+    Handle<Value> eventHandle = Object::New();
+    eventHandle.As<Object>()->Set(String::NewSymbol("data"), dataObject);
+
+    Handle<Function> emitFunction = nodeThreads->Get(
+        String::NewSymbol("emit"))
+    .As<Function>();
+
+     // make callback on node thread
+    Handle<Value> args[] = { 
+        String::New("message"),
+        eventHandle
+    };
+    emitFunction->Call(
+        nodeThreads,
+        2,
+        args);
 }
 
 // static methods -------------------------------------------------------------

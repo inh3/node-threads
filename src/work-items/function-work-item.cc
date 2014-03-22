@@ -23,8 +23,9 @@ FunctionWorkItem::FunctionWorkItem(
     const char* functionString,
     Handle<Function> callbackFunction,
     Handle<Object> workOptions,
-    Handle<Object> calleeObject)
-    : WorkItem(callbackFunction, workOptions, calleeObject)
+    Handle<Object> calleeObject,
+    Handle<Object> nodeThreads)
+    : WorkItem(callbackFunction, workOptions, calleeObject, nodeThreads)
 {
     printf("FunctionWorkItem::FunctionWorkItem\n");
     
@@ -94,4 +95,54 @@ void FunctionWorkItem::InstanceWorkFunction()
 void FunctionWorkItem::InstanceWorkCallback()
 {
     //printf("FunctionWorkItem::InstanceWorkCallback\n");
+}
+
+void FunctionWorkItem::AsyncCallback(
+    Handle<Value> errorHandle,
+    Handle<Value> infoHandle,
+    Handle<Value> resultHandle)
+{
+    WorkItem::AsyncCallback(errorHandle, infoHandle, resultHandle);
+
+#if (NODE_MODULE_VERSION > 0x000B)
+        Local<Function> callbackFunction = Local<Function>::New(
+            Isolate::GetCurrent(),
+            _CallbackFunction);
+#else
+        Local<Function> callbackFunction = Local<Function>::New(
+            _CallbackFunction);
+#endif
+
+    if(!callbackFunction.IsEmpty() &&
+        callbackFunction != Null() &&
+        callbackFunction != Undefined())
+    {
+        //create arguments array
+        const unsigned argc = 3;
+        Handle<Value> argv[argc] = { 
+            // error
+            (errorHandle == Undefined() ? (Handle<Value>)Null() : errorHandle),
+            // info
+            infoHandle,
+            // result
+            resultHandle
+        };
+
+        #if (NODE_MODULE_VERSION <= 0x000B)
+                TryCatch tryCatch;
+        #endif
+
+                // make callback on node thread
+                callbackFunction->Call(
+                    infoHandle.As<Object>()->Get(String::NewSymbol("context")).As<Object>(),
+                    argc,
+                    argv);
+
+        #if (NODE_MODULE_VERSION <= 0x000B)
+                if(tryCatch.HasCaught())
+                {
+                    tryCatch.ReThrow();
+                }
+        #endif
+    }
 }

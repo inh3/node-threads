@@ -20,27 +20,26 @@ class WorkItem
 {
     public:
 
+        // INSTANCE PROPERTIES ------------------------------------------------
+
         WorkItem(
             Handle<Function> callbackFunction,
             Handle<Object> workOptions,
-            Handle<Object> calleeObject);
+            Handle<Object> calleeObject,
+            Handle<Object> nodeThreads);
 
         virtual ~WorkItem();
 
         virtual void    InstanceWorkFunction() = 0;
         virtual void    InstanceWorkCallback() = 0;
 
-        static void     Initialize(const char* moduleDir);
+        virtual void    AsyncCallback(
+            Handle<Value> errorHandle,
+            Handle<Value> infoHandle,
+            Handle<Value> resultHandle);
 
-        static void*    WorkFunction(
-            TASK_QUEUE_WORK_DATA *taskInfoPtr,
-            void *threadContextPtr,
-            void *workItemPtr);
-
-        static void     WorkCallback(
-            TASK_QUEUE_WORK_DATA *taskInfoPtr,
-            void *threadContextPtr,
-            void *workItemPtr);
+        // reference to node thread pool
+        Persistent<Object>      _NodeThreads;
 
         // these are public so they can be accessed in the 
         // uv_async callback
@@ -55,6 +54,20 @@ class WorkItem
 
         uint32_t                _ThreadId;
         string                  _ThreadPoolKey;
+
+        // STATIC METHODS -----------------------------------------------------
+
+        static void     Initialize(const char* moduleDir);
+
+        static void*    WorkFunction(
+            TASK_QUEUE_WORK_DATA *taskInfoPtr,
+            void *threadContextPtr,
+            void *workItemPtr);
+
+        static void     WorkCallback(
+            TASK_QUEUE_WORK_DATA *taskInfoPtr,
+            void *threadContextPtr,
+            void *workItemPtr);
 
     private:
 

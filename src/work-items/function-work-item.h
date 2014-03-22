@@ -12,12 +12,18 @@ class FunctionWorkItem : public WorkItem
             const char* functionString,
             Handle<Function> callbackFunction,
             Handle<Object> workOptions,
-            Handle<Object> calleeObject);
+            Handle<Object> calleeObject,
+            Handle<Object> nodeThreads);
 
         virtual ~FunctionWorkItem();
 
         virtual void    InstanceWorkFunction();
         virtual void    InstanceWorkCallback();
+
+        virtual void    AsyncCallback(
+            Handle<Value> errorHandle,
+            Handle<Value> infoHandle,
+            Handle<Value> resultHandle);
 
     private:
 
