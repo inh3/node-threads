@@ -2,6 +2,9 @@
 
 #include "work-item.h"
 
+// threadpool
+#include "synchronize.h"
+
 // custom
 #include "thread.h"
 #include "callback-manager.h"
@@ -139,6 +142,13 @@ void* WorkItem::WorkFunction(
     // get refrence to work item
     WorkItem* workItem = (WorkItem*)workItemPtr;
 
+    // get currently running thread id
+    /*printf("[ Thread Pool Key ] %s\n",
+        threadContext->nodeThreads->GetThreadPoolKey().c_str());*/
+    workItem->_ThreadId = SyncGetThreadId();
+    workItem->_ThreadPoolKey.assign(
+        threadContext->nodeThreads->GetThreadPoolKey().c_str());
+
     // get reference to thread isolate
     Isolate* isolate = threadContext->thread_isolate;
     {
@@ -167,9 +177,6 @@ void* WorkItem::WorkFunction(
         contextObject->Set(
             String::NewSymbol("__dirname"),
             String::New(workItem->_DirName.c_str()));
-
-        printf("[ Thread Pool Key ] %s\n",
-            threadContext->nodeThreads->GetThreadPoolKey().c_str());
         
         workItem->InstanceWorkFunction();
     }

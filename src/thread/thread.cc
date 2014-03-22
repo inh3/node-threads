@@ -152,6 +152,11 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
         Handle<Value> exceptionHandle = JsonUtility::Parse(workItem->_Exception);
         Handle<Value> workResultHandle = JsonUtility::Parse(workItem->_WorkResult);
 
+        workOptions->Set(
+            String::NewSymbol("thread"), Number::New(workItem->_ThreadId));
+        workOptions->Set(
+            String::NewSymbol("threadpool"), String::New(workItem->_ThreadPoolKey.c_str()));
+
         //create arguments array
         const unsigned argc = 3;
         Handle<Value> argv[argc] = { 

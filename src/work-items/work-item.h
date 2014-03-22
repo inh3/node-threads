@@ -53,6 +53,9 @@ class WorkItem
         string                  _FileName;
         string                  _DirName;
 
+        uint32_t                _ThreadId;
+        string                  _ThreadPoolKey;
+
     private:
 
         void ProcessWorkOptions(Handle<Object> workOptions);
