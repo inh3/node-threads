@@ -102,6 +102,8 @@ void FunctionWorkItem::AsyncCallback(
     Handle<Value> infoHandle,
     Handle<Value> resultHandle)
 {
+    NanScope();
+
     WorkItem::AsyncCallback(errorHandle, infoHandle, resultHandle);
 
 #if (NODE_MODULE_VERSION > 0x000B)

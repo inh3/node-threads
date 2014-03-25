@@ -143,15 +143,12 @@ void WorkItem::AsyncCallback(
         String::NewSymbol("emit"))
     .As<Function>();
 
-     // make callback on node thread
+     // emit "message" on main thread
     Handle<Value> args[] = { 
         String::New("message"),
         eventHandle
     };
-    emitFunction->Call(
-        nodeThreads,
-        2,
-        args);
+    emitFunction->Call(nodeThreads, 2, args);
 }
 
 // static methods -------------------------------------------------------------
