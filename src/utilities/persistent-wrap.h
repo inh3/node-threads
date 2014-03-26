@@ -21,7 +21,7 @@ class PersistentWrap : public ObjectWrap
 
     //private:
 
-        virtual ~PersistentWrap() { printf("PersistentWrap::~PersistentWrap\n"); }
+        //virtual ~PersistentWrap() { printf("PersistentWrap::~PersistentWrap\n"); }
 };
 
 #endif /* _PERSISTENT_WRAP_H_ */

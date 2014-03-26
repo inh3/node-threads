@@ -16,31 +16,14 @@ using namespace node;
 #include "utilities.h"
 #include "file_info.h"
 
+extern Persistent<Function> EventEmitter;
+extern Persistent<Object> Path;
+extern Persistent<Value> NumCPUs;
+extern Persistent<Function> CalleeByStackTrace;
+
 Persistent<Function> NodeThreads::Constructor;
-Persistent<Function> NodeThreads::EventEmitter;
-Persistent<Object> NodeThreads::Path;
-Persistent<Value> NodeThreads::NumCPUs;
-Persistent<Function> NodeThreads::StackTrace;
 
 // Instance -------------------------------------------------------------------
-
-void NodeThreads::Initialize(const char* moduleDir)
-{
-    string stackPath;
-    stackPath.assign(moduleDir);
-    stackPath.append("/src/js/stack.js");
-    FileInfo stackFile(stackPath.c_str());
-    Handle<Script> stackScript = Script::New(
-        String::New(stackFile.FileContents()),
-        String::New("stack"));
-    Handle<Value> stackTraceFunction = stackScript->Run();
-
-#if (NODE_MODULE_VERSION > 0x000B)
-    StackTrace.Reset(Isolate::GetCurrent(), stackTraceFunction.As<Function>());
-#else
-    StackTrace = Persistent<Function>::New(stackTraceFunction.As<Function>());
-#endif
-}
 
 NodeThreads::NodeThreads(string threadPoolKey, uint32_t numThreads)
 {
@@ -136,7 +119,7 @@ NAN_METHOD(NodeThreads::New)
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
-        Local<Function> eventEmitter = NanPersistentToLocal(NodeThreads::EventEmitter);
+        Local<Function> eventEmitter = NanPersistentToLocal(EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
         // get the unique name param of the node thread instance
@@ -144,7 +127,7 @@ NAN_METHOD(NodeThreads::New)
         string threadPoolKey(*threadPoolName);
 
         // get number of threads
-        Local<Value> numCpus = NanPersistentToLocal(NodeThreads::NumCPUs);
+        Local<Value> numCpus = NanPersistentToLocal(NumCPUs);
         uint32_t numThreads = numCpus->Uint32Value();
         if(args.Length() == 2)
         {
@@ -237,12 +220,12 @@ Handle<Value> NodeThreads::GetCalleeInfo()
 #if (NODE_MODULE_VERSION > 0x000B)
     Local<Function> strackTraceFunction = Local<Function>::New(
         Isolate::GetCurrent(),
-        StackTrace);
+        CalleeByStackTrace);
     Local<Value> pathModule = Local<Object>::New(
         Isolate::GetCurrent(),
         Path);
 #else
-    Local<Function> strackTraceFunction = Local<Function>::New(StackTrace);
+    Local<Function> strackTraceFunction = Local<Function>::New(CalleeByStackTrace);
     Local<Value> pathModule = Local<Object>::New(Path);
 #endif
 

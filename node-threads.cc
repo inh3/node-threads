@@ -15,6 +15,31 @@ using namespace node;
 #include "work-item.h"
 #include "require.h"
 
+// GLOBALS
+
+Persistent<Function> EventEmitter;
+Persistent<Object> Path;
+Persistent<Value> NumCPUs;
+Persistent<Function> CalleeByStackTrace;
+
+void StackTraceInitialize(const char* moduleDir)
+{
+    string stackPath;
+    stackPath.assign(moduleDir);
+    stackPath.append("/src/js/stack.js");
+    FileInfo stackFile(stackPath.c_str());
+    Handle<Script> stackScript = Script::New(
+        String::New(stackFile.FileContents()),
+        String::New("stack"));
+    Handle<Value> stackTraceFunction = stackScript->Run();
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    CalleeByStackTrace.Reset(Isolate::GetCurrent(), stackTraceFunction.As<Function>());
+#else
+    CalleeByStackTrace = Persistent<Function>::New(stackTraceFunction.As<Function>());
+#endif
+}
+
 /**
  * Gets or creates a thread pool instance.
  *
@@ -91,7 +116,7 @@ NAN_METHOD(SubStack)
     // get ref to the module directory
     String::Utf8Value dirString(args[0]->ToString());
     Require::ModuleDir.assign(*dirString);
-    NodeThreads::Initialize(*dirString);
+    StackTraceInitialize(*dirString);
 
     // get ref to the process directory
     String::Utf8Value processDirString(args[1]->ToString());
