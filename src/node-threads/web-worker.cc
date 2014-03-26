@@ -17,6 +17,9 @@ WebWorker::WebWorker()
 WebWorker::~WebWorker()
 {
     printf("WebWorker::~WebWorker\n");
+
+    _OnMessage.Dispose();
+    _OnMessage.Clear();
 }
 
 // Node -----------------------------------------------------------------------
@@ -27,6 +30,13 @@ NAN_METHOD(WebWorker::New)
 
     if (args.IsConstructCall())
     {
+        // add instance function properties
+        args.This()->Set(String::NewSymbol("postMessage"),
+            FunctionTemplate::New(WebWorker::PostMessage)->GetFunction());
+        args.This()->Set(String::NewSymbol("addEventListener"),
+            FunctionTemplate::New(WebWorker::AddEventListener)->GetFunction());
+        args.This()->Set(String::NewSymbol("terminate"),
+            FunctionTemplate::New(WebWorker::Terminate)->GetFunction());
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
@@ -40,4 +50,38 @@ NAN_METHOD(WebWorker::New)
     }
 
     NanReturnUndefined();
+}
+
+NAN_GETTER(WebWorker::OnMessageGet)
+{
+    NanScope();
+    WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
+    Local<Function> onMessage = NanPersistentToLocal(webWorker->_OnMessage);
+    NanReturnValue(onMessage);
+}
+
+NAN_SETTER(WebWorker::OnMessageSet)
+{
+    NanScope();
+    WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
+    Local<Function> onMessage = value.As<Function>();
+    NanAssignPersistent(Function, webWorker->_OnMessage, onMessage);
+}
+
+NAN_METHOD(WebWorker::PostMessage)
+{
+    NanScope();
+    NanReturnValue(args.This());
+}
+
+NAN_METHOD(WebWorker::AddEventListener)
+{
+    NanScope();
+    NanReturnValue(args.This());
+}
+
+NAN_METHOD(WebWorker::Terminate)
+{
+    NanScope();
+    NanReturnValue(Undefined());
 }

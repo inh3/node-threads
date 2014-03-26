@@ -9,6 +9,7 @@ using namespace node;
 // node threads
 #include "node-threads-factory.h"
 #include "node-threads-object.h"
+#include "web-worker.h"
 
 // custom
 #include "thread-isolate.h"
@@ -129,6 +130,17 @@ NAN_METHOD(SubStack)
 
     nodeThreadsModule->Set(NanSymbol("deleteThreadPool"),
         FunctionTemplate::New(DeleteThreadPool)->GetFunction());
+
+    // prepare the constructor function template
+    Local<FunctionTemplate> webWorkerTemplate = FunctionTemplate::New(WebWorker::New);
+    webWorkerTemplate->InstanceTemplate()->SetAccessor(
+        String::NewSymbol("onmessage"),
+        WebWorker::OnMessageGet,
+        WebWorker::OnMessageSet);
+    webWorkerTemplate->SetClassName(String::NewSymbol("Worker"));
+    webWorkerTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+    nodeThreadsModule->Set(NanSymbol("Worker"),
+        webWorkerTemplate->GetFunction());
 
     NanReturnValue(nodeThreadsModule);
 }

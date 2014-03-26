@@ -16,6 +16,10 @@ class WebWorker : public ObjectWrap
         // constructor 'new'
         static NAN_METHOD(New);
 
+        // 'onmessage' property
+        static NAN_GETTER(OnMessageGet);
+        static NAN_SETTER(OnMessageSet);
+
         // provide public access to Node's ObjectWrap
         // Ref() and Unref() functions for use by the factory
         virtual void Ref() { ObjectWrap::Ref(); }
@@ -25,6 +29,12 @@ class WebWorker : public ObjectWrap
 
         explicit WebWorker();
         virtual ~WebWorker();
+
+        Persistent<Function> _OnMessage;
+
+        static NAN_METHOD(PostMessage);
+        static NAN_METHOD(AddEventListener);
+        static NAN_METHOD(Terminate);
 };
 
 #endif /* _WEB_WORKER_H_ */
