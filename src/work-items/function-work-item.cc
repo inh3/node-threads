@@ -57,6 +57,7 @@ FunctionWorkItem::~FunctionWorkItem()
     static int x = 0;
     printf("FunctionWorkItem::~FunctionWorkItem - %u\n", ++x);
     free(_FunctionString);
+    free(_FunctionParam);
 }
 
 void FunctionWorkItem::InstanceWorkFunction()
