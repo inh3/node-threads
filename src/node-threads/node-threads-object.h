@@ -39,6 +39,7 @@ class NodeThreads : public ObjectWrap
         
         void QueueFunctionWorkItem(
             const char* functionString,
+            Handle<Value> functionParam,
             Handle<Function> callbackFunction,
             Handle<Object> workOptions,
             Handle<Object> calleeObject,

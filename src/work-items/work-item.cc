@@ -10,11 +10,10 @@
 #include "callback-manager.h"
 #include "file_info.h"
 #include "utilities.h"
+#include "environment.h"
 
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
-
-Persistent<Function> WorkItem::_Guid;
 
 WorkItem::WorkItem(
     Handle<Function> callbackFunction,
@@ -82,7 +81,7 @@ void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 
     // set context to default node context if not specified
     Handle<Value> contextHandle = workOptions->Get(String::NewSymbol("context"));
-    if(contextHandle == Undefined())
+    if(contextHandle == Undefined() || contextHandle.IsEmpty())
     {
         Handle<Object> currentContext = Context::GetCurrent()->Global();
         workOptions->Set(String::NewSymbol("context"), currentContext);
@@ -90,15 +89,15 @@ void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 
     // set work id to guid if not specified
     Handle<Value> workId = workOptions->Get(String::NewSymbol("id"));
-    if(workId == Undefined())
+    if(workId == Undefined() || workId.IsEmpty())
     {
 #if (NODE_MODULE_VERSION > 0x000B)
         Local<Function> guidFunction = Local<Function>::New(
             Isolate::GetCurrent(),
-            _Guid);
+            Environment::Guid);
 #else
         Local<Function> guidFunction = Local<Function>::New(
-            _Guid);
+            Environment::Guid);
 #endif
 
         Handle<Value> guidHandle = guidFunction->Call(

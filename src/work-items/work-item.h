@@ -72,8 +72,6 @@ class WorkItem
     private:
 
         void ProcessWorkOptions(Handle<Object> workOptions);
-
-        static Persistent<Function> _Guid;
 };
 
 #endif /* _WORK_ITEM_H_ */

@@ -10,6 +10,7 @@ class FunctionWorkItem : public WorkItem
 
         FunctionWorkItem(
             const char* functionString,
+            Handle<Value> functionParam,
             Handle<Function> callbackFunction,
             Handle<Object> workOptions,
             Handle<Object> calleeObject,
@@ -35,6 +36,7 @@ class FunctionWorkItem : public WorkItem
         void operator=(FunctionWorkItem const&);
 
         char* _FunctionString;
+        char* _FunctionParam;
 };
 
 #endif /* _FUNCTION_WORK_ITEM_H_ */

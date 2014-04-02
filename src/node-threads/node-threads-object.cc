@@ -66,6 +66,7 @@ string NodeThreads::GetThreadPoolKey()
 
 void NodeThreads::QueueFunctionWorkItem(
     const char* functionString,
+    Handle<Value> functionParam,
     Handle<Function> callbackFunction,
     Handle<Object> workOptions,
     Handle<Object> calleeObject,
@@ -73,6 +74,7 @@ void NodeThreads::QueueFunctionWorkItem(
 {
     FunctionWorkItem* functionWorkItem = new FunctionWorkItem(
         functionString,
+        functionParam,
         callbackFunction,
         workOptions,
         calleeObject,
@@ -176,9 +178,9 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         }
 
         // check if the context object is valid
-        if((args.Length() == 3) && args[2]->IsObject())
+        if((args.Length() == 4) && args[3]->IsObject())
         {
-            workOptions = args[2]->ToObject();
+            workOptions = args[3]->ToObject();
         }
         else
         {
@@ -198,7 +200,8 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         String::Utf8Value funcStrValue(funcStrHandle);
         nodeThread->QueueFunctionWorkItem(
             *funcStrValue,
-            args[1].As<Function>(),
+            (args.Length() >= 2 ? args[1] : (Handle<Value>)Null()),
+            args[2].As<Function>(),
             workOptions,
             calleeObject,
             args.This());

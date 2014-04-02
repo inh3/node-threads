@@ -19,8 +19,14 @@ using namespace v8;
 #include "error-handling.h"
 #include "utilities.h"
 
+static const char* FunctionPrefix = "(function(){return ";
+static const uint32_t PrefixLen = strlen(FunctionPrefix);
+static const char* FunctionPostfix = ";})();";
+static const uint32_t PostFixLen = strlen(FunctionPostfix);
+
 FunctionWorkItem::FunctionWorkItem(
     const char* functionString,
+    Handle<Value> functionParam,
     Handle<Function> callbackFunction,
     Handle<Object> workOptions,
     Handle<Object> calleeObject,
@@ -31,15 +37,19 @@ FunctionWorkItem::FunctionWorkItem(
     
     size_t fStrLen = strlen(functionString);
 
-    // add 3 extra slots for '(' + function + ')' + '\0'
-    _FunctionString = (char*)malloc(fStrLen + 5);
-    memset(_FunctionString, 0, fStrLen + 5);
+    _FunctionParam = JsonUtility::Stringify(functionParam);
 
-    _FunctionString[0] = '(';
-    memcpy(_FunctionString + 1, functionString, fStrLen);
-    _FunctionString[1 + fStrLen] = ')';
-    _FunctionString[2 + fStrLen] = '(';
-    _FunctionString[3 + fStrLen] = ')';
+    _FunctionString = (char*)malloc(fStrLen + PrefixLen + PostFixLen + 1);
+    memset(_FunctionString, 0, fStrLen + PrefixLen + PostFixLen + 1);
+
+    uint32_t stringOffset = 0;
+    memcpy(_FunctionString, FunctionPrefix, PrefixLen);
+    stringOffset += PrefixLen;
+    
+    memcpy(_FunctionString + stringOffset, functionString, fStrLen);
+    stringOffset += fStrLen;
+
+    memcpy(_FunctionString + stringOffset, FunctionPostfix, PostFixLen);
 }
 
 FunctionWorkItem::~FunctionWorkItem()
@@ -85,9 +95,25 @@ void FunctionWorkItem::InstanceWorkFunction()
             exceptionObject = ErrorHandling::HandleException(&tryCatch);
             _Exception = JsonUtility::Stringify(exceptionObject);
         }
+        else if(!scriptResult->IsFunction())
+        {
+            _WorkResult = JsonUtility::Stringify(Null());
+        }
         else
         {
-            _WorkResult = JsonUtility::Stringify(scriptResult);
+            Handle<Value> argv[1] = { JsonUtility::Parse(_FunctionParam) };
+            Handle<Value> functionResult = scriptResult.As<Function>()->Call(
+                Context::GetCurrent()->Global(), 1, argv);
+
+            if(tryCatch.HasCaught())
+            {
+                exceptionObject = ErrorHandling::HandleException(&tryCatch);
+                _Exception = JsonUtility::Stringify(exceptionObject);
+            }
+            else
+            {
+                _WorkResult = JsonUtility::Stringify(functionResult);
+            }
         }
     }
 }
