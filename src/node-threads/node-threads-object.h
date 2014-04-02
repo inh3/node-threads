@@ -44,7 +44,7 @@ class NodeThreads : public ObjectWrap
             Handle<Object> calleeObject,
             Handle<Object> nodeThreads);
 
-    private:
+    protected:
 
         explicit NodeThreads(string threadPoolKey, uint32_t numThreads);
         virtual ~NodeThreads();

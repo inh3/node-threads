@@ -12,11 +12,7 @@ using namespace node;
 // node-threads
 #include "utilities.h"
 #include "node-threads-object.h"
-
-// Globals
-extern Persistent<Function> EventEmitter;
-extern Persistent<Object> Path;
-extern Persistent<Value> NumCPUs;
+#include "environment.h"
 
 NodeThreadMap NodeThreadsFactory::_NodeThreadMap;
 
@@ -30,7 +26,7 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
     Local<Object> eventsModule = requireFunction->Call(module, 1, args)->ToObject();
     NanAssignPersistent(
         Function,
-        EventEmitter, 
+        Environment::EventEmitter, 
         eventsModule->Get(String::NewSymbol("EventEmitter")).As<Function>());
 
     // store reference to path
@@ -38,7 +34,7 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
     Local<Object> pathModule = requireFunction->Call(module, 1, args)->ToObject();
     NanAssignPersistent(
         Object,
-        Path, 
+        Environment::Path, 
         pathModule);
 
     // store number of cpu cores
@@ -48,7 +44,7 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
     Local<Array> cpuArray = cpuFunction->Call(module, 0, NULL).As<Array>();
     NanAssignPersistent(
         Value,
-        NumCPUs,
+        Environment::NumCPUs,
         Uint32::NewFromUnsigned((cpuArray->Length() > 2 ? cpuArray->Length() - 1 : 2)));
 
     // prepare the constructor function template
@@ -78,7 +74,10 @@ void NodeThreadsFactory::Init(Handle<Object> exports, Handle<Object> module)
     args[0] = String::New("util");
     Local<Object> utilModule = requireFunction->Call(module, 1, args)->ToObject();
     Local<Function> inheritsFunction = utilModule->Get(String::NewSymbol("inherits")).As<Function>();
-    Local<Value> inheritArgs[] = { constructorTemplate->GetFunction(), NanPersistentToLocal(EventEmitter) };
+    Local<Value> inheritArgs[] = { 
+        constructorTemplate->GetFunction(),
+        NanPersistentToLocal(Environment::EventEmitter)
+    };
     inheritsFunction->Call(module, 2, inheritArgs);
 
     // expose the constructor

@@ -3,13 +3,14 @@
 
 #include <v8.h>
 #include <node.h>
-#include <node_object_wrap.h>
 using namespace v8;
 using namespace node;
 
 #include "nan.h"
 
-class WebWorker : public ObjectWrap
+#include "node-threads-object.h"
+
+class WebWorker : public NodeThreads
 {
     public:
 
@@ -27,7 +28,7 @@ class WebWorker : public ObjectWrap
 
     private:
 
-        explicit WebWorker();
+        explicit WebWorker(const char* threadPoolKey);
         virtual ~WebWorker();
 
         Persistent<Function> _OnMessage;

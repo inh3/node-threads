@@ -2,14 +2,11 @@
 
 #include "web-worker.h"
 
-// Globals
+// custom
+#include "environment.h"
 
-extern Persistent<Function> EventEmitter;
-extern Persistent<Object> Path;
-extern Persistent<Value> NumCPUs;
-extern Persistent<Function> CalleeByStackTrace;
-
-WebWorker::WebWorker()
+WebWorker::WebWorker(const char* threadPoolKey)
+    : NodeThreads(threadPoolKey, 1)
 {
     printf("WebWorker::WebWorker\n");
 }
@@ -40,11 +37,13 @@ NAN_METHOD(WebWorker::New)
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
-        Local<Function> eventEmitter = NanPersistentToLocal(EventEmitter);
+        Local<Function> eventEmitter = NanPersistentToLocal(Environment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
+        
+
         // wrap the class and return the javascript object
-        WebWorker* webWorker = new WebWorker();
+        WebWorker* webWorker = new WebWorker("");
         webWorker->Wrap(args.This());
         NanReturnValue(args.This());
     }

@@ -153,26 +153,6 @@ void WorkItem::AsyncCallback(
 
 // static methods -------------------------------------------------------------
 
-void WorkItem::Initialize(const char* moduleDir)
-{
-    NanScope();
-
-    string guidPath;
-    guidPath.assign(moduleDir);
-    guidPath.append("/src/js/guid.js");
-    FileInfo guidFile(guidPath.c_str());
-    Handle<Script> guidScript = Script::New(
-        String::New(guidFile.FileContents()),
-        String::New("guid"));
-    Handle<Value> guidFunction = guidScript->Run();
-
-#if (NODE_MODULE_VERSION > 0x000B)
-    _Guid.Reset(Isolate::GetCurrent(), guidFunction.As<Function>());
-#else
-    _Guid = Persistent<Function>::New(guidFunction.As<Function>());
-#endif
-}
-
 void* WorkItem::WorkFunction(
     TASK_QUEUE_WORK_DATA *taskInfoPtr,
     void *threadContextPtr,
