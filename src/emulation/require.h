@@ -25,8 +25,6 @@ class Require
         
         static NAN_METHOD(RequireMethod);
 
-        static string ModuleDir;
-
     private:
 
         static void LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileInfo);

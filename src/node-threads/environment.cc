@@ -6,8 +6,11 @@
 #include "thread-isolate.h"
 #include "work-item.h"
 #include "require.h"
+#include "process_emulation.h"
 
 // static member variables
+
+bool                    Environment::_IsInitialized = false;
 
 Persistent<Value>       Environment::NumCPUs;
 Persistent<Object>      Environment::Path;
@@ -15,16 +18,26 @@ Persistent<Function>    Environment::EventEmitter;
 Persistent<Function>    Environment::CalleeByStackTrace;
 Persistent<Function>    Environment::Guid;
 
+string                  Environment::ModuleDir;
+string                  Environment::ProcessDir;
+
 // public methods --------------------------------------------------------------
 
 void Environment::Initialize(const char* moduleDir, const char* processDir)
 {
-    GuidInitialize(moduleDir);
-    StackTraceInitialize(moduleDir);
+    // make sure to only initialize once
+    if(_IsInitialized == false)
+    {
+        _IsInitialized = true;
 
-    Require::ModuleDir.assign(moduleDir);
+        ModuleDir.assign(moduleDir);
+        ProcessDir.assign(processDir);
 
-    ThreadIsolate::Initialize(processDir);
+        GuidInitialize(moduleDir);
+        StackTraceInitialize(moduleDir);
+
+        Process::Initialize();
+    }
 }
 
 // private methods -------------------------------------------------------------

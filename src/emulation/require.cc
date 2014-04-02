@@ -10,29 +10,28 @@
 #include "thread-isolate.h"
 #include "persistent-wrap.h"
 #include "utilities.h"
-
-string Require::ModuleDir;
+#include "environment.h"
 
 void Require::InitializePerIsolate()
 {
     string modulePath;
 
-    modulePath.assign(Require::ModuleDir);
+    modulePath.assign(Environment::ModuleDir);
     modulePath.append("/src/js/util.js");
     FileInfo utilFile(modulePath.c_str());
     LoadNativeModule(String::New("util"), &utilFile);
 
-    modulePath.assign(Require::ModuleDir);
+    modulePath.assign(Environment::ModuleDir);
     modulePath.append("/src/js/path.js");
     FileInfo pathFile(modulePath.c_str());
     LoadNativeModule(String::New("path"), &pathFile);
 
-    modulePath.assign(Require::ModuleDir);
+    modulePath.assign(Environment::ModuleDir);
     modulePath.append("/src/js/assert.js");
     FileInfo assertFile(modulePath.c_str());
     LoadNativeModule(String::New("assert"), &assertFile);
 
-    modulePath.assign(Require::ModuleDir);
+    modulePath.assign(Environment::ModuleDir);
     modulePath.append("/src/js/console.js");
     FileInfo consoleFile(modulePath.c_str());
     LoadNativeModule(String::New("console"), &consoleFile);

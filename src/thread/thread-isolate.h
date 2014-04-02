@@ -20,9 +20,6 @@ class ThreadIsolate
 {
     public:
 
-        // this should only be called once at module init
-        static void     Initialize(const char* dirString);
-
         // global context (per thread)
         static void     InitializeGlobalContext();
 

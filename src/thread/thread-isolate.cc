@@ -9,23 +9,6 @@
 #include "json.h"
 #include "utilities.h"
 
-bool ThreadIsolate::_IsInitialized = false;
-string ThreadIsolate::_ProcessDir;
-
-// this should only be called from main thread
-void ThreadIsolate::Initialize(const char* dirString)
-{
-    // make sure to only initialize once
-    if(_IsInitialized == false)
-    {
-        _IsInitialized = true;
-
-        _ProcessDir.assign(dirString);
-
-        Process::Initialize();
-    }
-}
-
 void ThreadIsolate::InitializeGlobalContext()
 {
     // get reference to current isolate

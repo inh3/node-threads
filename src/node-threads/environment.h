@@ -8,6 +8,10 @@ using namespace node;
 
 #include "nan.h"
 
+// C++
+#include <string>
+using namespace std;
+
 class Environment
 {
     public:
@@ -18,12 +22,17 @@ class Environment
         static Persistent<Function>     CalleeByStackTrace;
         static Persistent<Function>     Guid;
 
+        static string                   ModuleDir;
+        static string                   ProcessDir;
+
         static void Initialize(const char* moduleDir, const char* processDir);
 
     private:
 
         static void GuidInitialize(const char* moduleDir);
         static void StackTraceInitialize(const char* moduleDir);
+
+        static bool                     _IsInitialized;
 };
 
 #endif /* _ENVIRONMENT_H_ */
