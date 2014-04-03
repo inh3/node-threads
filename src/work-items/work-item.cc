@@ -15,33 +15,17 @@
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
 
-WorkItem::WorkItem(
-    Handle<Function> callbackFunction,
-    Handle<Object> workOptions,
-    Handle<Object> calleeObject,
-    Handle<Object> nodeThreads)
+WorkItem::WorkItem(Handle<Object> nodeThreads)
 {
     printf("WorkItem::WorkItem\n");
     _WorkResult = NULL;
     _Exception = NULL;
 
 #if (NODE_MODULE_VERSION > 0x000B)
-    _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
     _NodeThreads.Reset(Isolate::GetCurrent(), nodeThreads);
 #else
-    _CallbackFunction = Persistent<Function>::New(callbackFunction);
     _NodeThreads = Persistent<Object>::New(nodeThreads);
 #endif
-
-    ProcessWorkOptions(workOptions);
-
-    String::Utf8Value fileNameStr(calleeObject->Get(
-        String::NewSymbol("__filename")));
-    String::Utf8Value dirNameStr(calleeObject->Get(
-        String::NewSymbol("__dirname")));
-
-    _FileName.assign(*fileNameStr);
-    _DirName.assign(*dirNameStr);
 }
 
 // 'delete' can only be called from main thread
@@ -63,55 +47,8 @@ WorkItem::~WorkItem()
     _WorkOptions.Dispose();
     _WorkOptions.Clear();
 
-    _CallbackFunction.Dispose();
-    _CallbackFunction.Clear();
-
     _NodeThreads.Dispose();
     _NodeThreads.Clear();
-}
-
-void WorkItem::ProcessWorkOptions(Handle<Object> workOptions)
-{
-    NanScope();
-
-    if(workOptions.IsEmpty())
-    {
-        workOptions = Object::New();
-    }
-
-    // set context to default node context if not specified
-    Handle<Value> contextHandle = workOptions->Get(String::NewSymbol("context"));
-    if(contextHandle == Undefined() || contextHandle.IsEmpty())
-    {
-        Handle<Object> currentContext = Context::GetCurrent()->Global();
-        workOptions->Set(String::NewSymbol("context"), currentContext);
-    }
-
-    // set work id to guid if not specified
-    Handle<Value> workId = workOptions->Get(String::NewSymbol("id"));
-    if(workId == Undefined() || workId.IsEmpty())
-    {
-#if (NODE_MODULE_VERSION > 0x000B)
-        Local<Function> guidFunction = Local<Function>::New(
-            Isolate::GetCurrent(),
-            Environment::Guid);
-#else
-        Local<Function> guidFunction = Local<Function>::New(
-            Environment::Guid);
-#endif
-
-        Handle<Value> guidHandle = guidFunction->Call(
-            Context::GetCurrent()->Global(),
-            0,
-            NULL);
-        workOptions->Set(String::NewSymbol("id"), guidHandle);
-    }
-
-#if (NODE_MODULE_VERSION > 0x000B)
-    _WorkOptions.Reset(Isolate::GetCurrent(), workOptions);
-#else
-    _WorkOptions = Persistent<Object>::New(workOptions);
-#endif
 }
 
 void WorkItem::AsyncCallback(
@@ -190,17 +127,8 @@ void* WorkItem::WorkFunction(
         Handle<Object> contextObject = Context::GetCurrent()->Global();
 #endif
 
-        // set __filename and __dirname
-        contextObject->Set(
-            String::NewSymbol("__filename"),
-            String::New(workItem->_FileName.c_str()));
-
-        contextObject->Set(
-            String::NewSymbol("__dirname"),
-            String::New(workItem->_DirName.c_str()));
-        
-        workItem->InstanceWorkFunction();
-    }
+        workItem->InstanceWorkFunction(contextObject);
+}
 
     // leave the isolate
     isolate->Exit();

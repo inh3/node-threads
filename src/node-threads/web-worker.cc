@@ -4,6 +4,7 @@
 
 // custom
 #include "environment.h"
+#include "utilities.h"
 
 WebWorker::WebWorker(const char* threadPoolKey)
     : NodeThreads(threadPoolKey, 1)
@@ -18,6 +19,8 @@ WebWorker::~WebWorker()
     _OnMessage.Dispose();
     _OnMessage.Clear();
 }
+
+//void WebWorker::QueueWorkerFunction()
 
 // Node -----------------------------------------------------------------------
 
@@ -39,8 +42,6 @@ NAN_METHOD(WebWorker::New)
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
         Local<Function> eventEmitter = NanPersistentToLocal(Environment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
-
-        
 
         // wrap the class and return the javascript object
         WebWorker* webWorker = new WebWorker("");
@@ -70,6 +71,13 @@ NAN_SETTER(WebWorker::OnMessageSet)
 NAN_METHOD(WebWorker::PostMessage)
 {
     NanScope();
+
+    Handle<Object> eventObject = Object::New();
+
+    eventObject->Set(
+            String::NewSymbol("data"),
+            NanNewLocal<Object>(args[0].As<Object>()));
+
     NanReturnValue(args.This());
 }
 

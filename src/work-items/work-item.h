@@ -22,15 +22,11 @@ class WorkItem
 
         // INSTANCE PROPERTIES ------------------------------------------------
 
-        WorkItem(
-            Handle<Function> callbackFunction,
-            Handle<Object> workOptions,
-            Handle<Object> calleeObject,
-            Handle<Object> nodeThreads);
+        WorkItem(Handle<Object> nodeThreads);
 
         virtual ~WorkItem();
 
-        virtual void    InstanceWorkFunction() = 0;
+        virtual void    InstanceWorkFunction(Handle<Object> contextObject) = 0;
         virtual void    InstanceWorkCallback() = 0;
 
         virtual void    AsyncCallback(
@@ -43,7 +39,6 @@ class WorkItem
 
         // these are public so they can be accessed in the 
         // uv_async callback
-        Persistent<Function>    _CallbackFunction;
         Persistent<Object>      _WorkOptions;
         char*                   _Exception;
         char*                   _WorkResult;
@@ -68,10 +63,6 @@ class WorkItem
             TASK_QUEUE_WORK_DATA *taskInfoPtr,
             void *threadContextPtr,
             void *workItemPtr);
-
-    private:
-
-        void ProcessWorkOptions(Handle<Object> workOptions);
 };
 
 #endif /* _WORK_ITEM_H_ */

@@ -15,6 +15,7 @@ using namespace v8;
 #include <string.h>
 
 // custom
+#include "environment.h"
 #include "json.h"
 #include "error-handling.h"
 #include "utilities.h"
@@ -31,7 +32,7 @@ FunctionWorkItem::FunctionWorkItem(
     Handle<Object> workOptions,
     Handle<Object> calleeObject,
     Handle<Object> nodeThreads)
-    : WorkItem(callbackFunction, workOptions, calleeObject, nodeThreads)
+    : WorkItem(nodeThreads)
 {
     printf("FunctionWorkItem::FunctionWorkItem\n");
     
@@ -50,17 +51,81 @@ FunctionWorkItem::FunctionWorkItem(
     stringOffset += fStrLen;
 
     memcpy(_FunctionString + stringOffset, FunctionPostfix, PostFixLen);
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
+#else
+    _CallbackFunction = Persistent<Function>::New(callbackFunction);
+#endif
+
+    String::Utf8Value fileNameStr(calleeObject->Get(
+        String::NewSymbol("__filename")));
+    String::Utf8Value dirNameStr(calleeObject->Get(
+        String::NewSymbol("__dirname")));
+
+    _FileName.assign(*fileNameStr);
+    _DirName.assign(*dirNameStr);
+
+    ProcessWorkOptions(workOptions);
+}
+
+void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
+{
+    NanScope();
+
+    if(workOptions.IsEmpty())
+    {
+        workOptions = Object::New();
+    }
+
+    // set context to default node context if not specified
+    Handle<Value> contextHandle = workOptions->Get(String::NewSymbol("context"));
+    if(contextHandle == Undefined() || contextHandle.IsEmpty())
+    {
+        Handle<Object> currentContext = Context::GetCurrent()->Global();
+        workOptions->Set(String::NewSymbol("context"), currentContext);
+    }
+
+    // set work id to guid if not specified
+    Handle<Value> workId = workOptions->Get(String::NewSymbol("id"));
+    if(workId == Undefined() || workId.IsEmpty())
+    {
+#if (NODE_MODULE_VERSION > 0x000B)
+        Local<Function> guidFunction = Local<Function>::New(
+            Isolate::GetCurrent(),
+            Environment::Guid);
+#else
+        Local<Function> guidFunction = Local<Function>::New(
+            Environment::Guid);
+#endif
+
+        Handle<Value> guidHandle = guidFunction->Call(
+            Context::GetCurrent()->Global(),
+            0,
+            NULL);
+        workOptions->Set(String::NewSymbol("id"), guidHandle);
+    }
+
+#if (NODE_MODULE_VERSION > 0x000B)
+    _WorkOptions.Reset(Isolate::GetCurrent(), workOptions);
+#else
+    _WorkOptions = Persistent<Object>::New(workOptions);
+#endif
 }
 
 FunctionWorkItem::~FunctionWorkItem()
 {
     static int x = 0;
     printf("FunctionWorkItem::~FunctionWorkItem - %u\n", ++x);
+
+    _CallbackFunction.Dispose();
+    _CallbackFunction.Clear();
+
     free(_FunctionString);
     free(_FunctionParam);
 }
 
-void FunctionWorkItem::InstanceWorkFunction()
+void FunctionWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
 {
     printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
 
@@ -75,6 +140,15 @@ void FunctionWorkItem::InstanceWorkFunction()
     Handle<Script> compiledScript;
     Handle<Value> scriptResult;
     Handle<Object> exceptionObject;
+
+    // set __filename and __dirname
+    contextObject->Set(
+        String::NewSymbol("__filename"),
+        String::New(_FileName.c_str()));
+
+    contextObject->Set(
+        String::NewSymbol("__dirname"),
+        String::New(_DirName.c_str()));
 
     //String::Utf8Value scriptSource(String::New(_FunctionString));
     //printf("%s\n", *scriptSource);
@@ -158,20 +232,20 @@ void FunctionWorkItem::AsyncCallback(
         };
 
         #if (NODE_MODULE_VERSION <= 0x000B)
-                TryCatch tryCatch;
+            TryCatch tryCatch;
         #endif
 
-                // make callback on node thread
-                callbackFunction->Call(
-                    infoHandle.As<Object>()->Get(String::NewSymbol("context")).As<Object>(),
-                    argc,
-                    argv);
+            // make callback on node thread
+            callbackFunction->Call(
+                infoHandle.As<Object>()->Get(String::NewSymbol("context")).As<Object>(),
+                argc,
+                argv);
 
         #if (NODE_MODULE_VERSION <= 0x000B)
-                if(tryCatch.HasCaught())
-                {
-                    tryCatch.ReThrow();
-                }
+            if(tryCatch.HasCaught())
+            {
+                tryCatch.ReThrow();
+            }
         #endif
     }
 }
