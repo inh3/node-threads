@@ -21,6 +21,10 @@ class WebWorker : public NodeThreads
         static NAN_GETTER(OnMessageGet);
         static NAN_SETTER(OnMessageSet);
 
+        // js constructor
+        static Persistent<Function> Constructor;
+        static void Init();
+
         // provide public access to Node's ObjectWrap
         // Ref() and Unref() functions for use by the factory
         virtual void Ref() { ObjectWrap::Ref(); }

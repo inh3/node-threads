@@ -28,7 +28,7 @@ class NodeThreadsFactory
 {
     public:
         
-        static void Init(Handle<Object> exports, Handle<Object> module);
+        static void Init();
         static NAN_METHOD(CreateInstance);
         static NAN_METHOD(DestroyInstance);
 

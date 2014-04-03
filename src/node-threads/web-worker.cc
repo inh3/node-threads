@@ -8,6 +8,8 @@
 #include "json.h"
 #include "utilities.h"
 
+Persistent<Function> WebWorker::Constructor;
+
 WebWorker::WebWorker(const char* threadPoolKey)
     : NodeThreads(threadPoolKey, 1)
 {
@@ -20,6 +22,31 @@ WebWorker::~WebWorker()
 
     _OnMessage.Dispose();
     _OnMessage.Clear();
+}
+
+void WebWorker::Init()
+{
+    // prepare the constructor function template
+    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(WebWorker::New);
+    constructorTemplate->InstanceTemplate()->SetAccessor(
+        String::NewSymbol("onmessage"),
+        WebWorker::OnMessageGet,
+        WebWorker::OnMessageSet);
+    constructorTemplate->SetClassName(String::NewSymbol("Worker"));
+    constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // inherit from event emitter
+    Local<Function> inheritsFunction = Environment::Util->Get(String::NewSymbol("inherits")).As<Function>();
+    Local<Value> inheritArgs[] = { 
+        constructorTemplate->GetFunction(),
+        NanPersistentToLocal(Environment::EventEmitter)
+    };
+    inheritsFunction->Call(Environment::Module, 2, inheritArgs);
+    
+    NanAssignPersistent(
+        Function,
+        WebWorker::Constructor,
+        constructorTemplate->GetFunction());
 }
 
 void WebWorker::QueueWebWorker(

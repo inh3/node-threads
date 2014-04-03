@@ -8,15 +8,23 @@
 #include "require.h"
 #include "process_emulation.h"
 
-// static member variables
+// static member variables -----------------------------------------------------
 
 bool                    Environment::_IsInitialized = false;
 
-Persistent<Value>       Environment::NumCPUs;
-Persistent<Object>      Environment::Path;
+// overall module global references
+Persistent<Object>      Environment::Exports;
+Persistent<Object>      Environment::Module;
+
+// node global references
 Persistent<Function>    Environment::EventEmitter;
+Persistent<Object>      Environment::Path;
+Persistent<Object>      Environment::Util;
+
+// custom global references
 Persistent<Function>    Environment::CalleeByStackTrace;
 Persistent<Function>    Environment::Guid;
+Persistent<Value>       Environment::NumCPUs;
 
 string                  Environment::ModuleDir;
 string                  Environment::ProcessDir;
@@ -35,6 +43,8 @@ void Environment::Initialize(const char* moduleDir, const char* processDir)
 
         GuidInitialize(moduleDir);
         StackTraceInitialize(moduleDir);
+
+        NodeInitialize();
 
         Process::Initialize();
     }
@@ -78,4 +88,48 @@ void Environment::StackTraceInitialize(const char* moduleDir)
         Function,
         CalleeByStackTrace,
         stackTraceFunction.As<Function>());
+}
+
+void Environment::NodeInitialize()
+{
+    // store reference to event emitter
+    Local<Function> requireFunction = NanNewLocal<Function>(
+        Environment::Module->Get(String::NewSymbol("require")).As<Function>());
+    Local<Value> args[] = { String::New("events") };
+    Local<Object> eventsModule = requireFunction->Call(
+        Environment::Module, 1, args)->ToObject();
+    NanAssignPersistent(
+        Function,
+        Environment::EventEmitter, 
+        eventsModule->Get(String::NewSymbol("EventEmitter")).As<Function>());
+
+    // store reference to path
+    args[0] = String::New("path");
+    Local<Object> pathModule = requireFunction->Call(
+        Environment::Module, 1, args)->ToObject();
+    NanAssignPersistent(
+        Object,
+        Environment::Path, 
+        pathModule);
+
+    // store reference to util
+    args[0] = String::New("util");
+    Local<Object> utilModule = requireFunction->Call(
+        Environment::Module, 1, args)->ToObject();
+    NanAssignPersistent(
+        Object,
+        Environment::Util, 
+        utilModule);
+
+    // store number of cpu cores
+    args[0] = String::New("os");
+    Local<Object> osModule = requireFunction->Call(
+        Environment::Module, 1, args)->ToObject();
+    Local<Function> cpuFunction = osModule->Get(String::NewSymbol("cpus")).As<Function>();
+    Local<Array> cpuArray = cpuFunction->Call(
+        Environment::Module, 0, NULL).As<Array>();
+    NanAssignPersistent(
+        Value,
+        Environment::NumCPUs,
+        Uint32::NewFromUnsigned((cpuArray->Length() > 2 ? cpuArray->Length() - 1 : 2)));
 }

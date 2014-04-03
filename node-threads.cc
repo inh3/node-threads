@@ -94,6 +94,9 @@ NAN_METHOD(SubStack)
     // initialize environment
     Environment::Initialize(*dirString, *processDirString);
 
+    NodeThreadsFactory::Init();
+    WebWorker::Init();
+
     Local<Object> nodeThreadsModule = Object::New();
     nodeThreadsModule->Set(NanSymbol("getThreadPool"),
         FunctionTemplate::New(GetThreadPool)->GetFunction());
@@ -101,23 +104,23 @@ NAN_METHOD(SubStack)
     nodeThreadsModule->Set(NanSymbol("deleteThreadPool"),
         FunctionTemplate::New(DeleteThreadPool)->GetFunction());
 
-    // prepare the constructor function template
-    Local<FunctionTemplate> webWorkerTemplate = FunctionTemplate::New(WebWorker::New);
-    webWorkerTemplate->InstanceTemplate()->SetAccessor(
-        String::NewSymbol("onmessage"),
-        WebWorker::OnMessageGet,
-        WebWorker::OnMessageSet);
-    webWorkerTemplate->SetClassName(String::NewSymbol("Worker"));
-    webWorkerTemplate->InstanceTemplate()->SetInternalFieldCount(1);
     nodeThreadsModule->Set(NanSymbol("Worker"),
-        webWorkerTemplate->GetFunction());
+        WebWorker::Constructor);
 
     NanReturnValue(nodeThreadsModule);
 }
 
 void init(Handle<Object> exports, Handle<Object> module)
 {
-    NodeThreadsFactory::Init(exports, module);
+    NanAssignPersistent(
+        Object,
+        Environment::Exports,
+        exports);
+
+    NanAssignPersistent(
+        Object,
+        Environment::Module,
+        module);
 
     module->Set(String::NewSymbol("exports"),
         FunctionTemplate::New(SubStack)->GetFunction());

@@ -16,9 +16,17 @@ class Environment
 {
     public:
 
-        static Persistent<Value>        NumCPUs;
-        static Persistent<Object>       Path;
+        // overall module global references
+        static Persistent<Object>      Exports;
+        static Persistent<Object>      Module;
+
+        // node global references
         static Persistent<Function>     EventEmitter;
+        static Persistent<Object>       Path;
+        static Persistent<Object>       Util;
+
+        // custom global references
+        static Persistent<Value>        NumCPUs;
         static Persistent<Function>     CalleeByStackTrace;
         static Persistent<Function>     Guid;
 
@@ -30,6 +38,7 @@ class Environment
     private:
 
         static void GuidInitialize(const char* moduleDir);
+        static void NodeInitialize();
         static void StackTraceInitialize(const char* moduleDir);
 
         static bool                     _IsInitialized;
