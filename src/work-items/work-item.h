@@ -22,7 +22,7 @@ class WorkItem
 
         // INSTANCE PROPERTIES ------------------------------------------------
 
-        WorkItem(Handle<Object> nodeThreads);
+        WorkItem(Handle<Object> threadPoolObject);
 
         virtual ~WorkItem();
 
@@ -35,7 +35,7 @@ class WorkItem
             Handle<Value> resultHandle);
 
         // reference to node thread pool
-        Persistent<Object>      _NodeThreads;
+        Persistent<Object>      _ThreadPoolObject;
 
         // these are public so they can be accessed in the 
         // uv_async callback

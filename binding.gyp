@@ -22,6 +22,7 @@
 
             'src/work-items/work-item.cc',
             'src/work-items/function-work-item.cc',
+            'src/work-items/web-work-item.cc',
             
             'src/utilities/utilities.cc',
             'src/utilities/error-handling.cc',

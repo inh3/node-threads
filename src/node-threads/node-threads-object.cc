@@ -11,7 +11,6 @@ using namespace node;
 
 // custom
 #include "thread.h"
-#include "work-item.h"
 #include "function-work-item.h"
 #include "utilities.h"
 #include "file_info.h"
@@ -64,6 +63,31 @@ string NodeThreads::GetThreadPoolKey()
     return _ThreadPoolKey;
 }
 
+void NodeThreads::QueueWorkItem(void* workItem)
+{
+    // reference to task queue item to be added
+    TASK_QUEUE_ITEM     *taskQueueItem = 0;
+
+    // create task queue item object
+    taskQueueItem = (TASK_QUEUE_ITEM*)malloc(sizeof(TASK_QUEUE_ITEM));
+    memset(taskQueueItem, 0, sizeof(TASK_QUEUE_ITEM));
+
+    // store reference to work item
+    taskQueueItem->taskItemData = workItem;
+
+    // set the task item work function
+    taskQueueItem->taskItemFunction = WorkItem::WorkFunction;
+
+    // set the task item callback function
+    taskQueueItem->taskItemCallback = WorkItem::WorkCallback;
+
+    // set the task item id (not used right now)
+    taskQueueItem->taskId = 0;
+    
+    // add the task to the queue
+    AddTaskToQueue(_TaskQueue, taskQueueItem);
+}
+
 void NodeThreads::QueueFunctionWorkItem(
     const char* functionString,
     Handle<Value> functionParam,
@@ -80,27 +104,7 @@ void NodeThreads::QueueFunctionWorkItem(
         calleeObject,
         nodeThreads);
 
-    // reference to task queue item to be added
-    TASK_QUEUE_ITEM     *taskQueueItem = 0;
-
-    // create task queue item object
-    taskQueueItem = (TASK_QUEUE_ITEM*)malloc(sizeof(TASK_QUEUE_ITEM));
-    memset(taskQueueItem, 0, sizeof(TASK_QUEUE_ITEM));
-
-    // store reference to work item
-    taskQueueItem->taskItemData = (void*)functionWorkItem;
-
-    // set the task item work function
-    taskQueueItem->taskItemFunction = WorkItem::WorkFunction;
-
-    // set the task item callback function
-    taskQueueItem->taskItemCallback = WorkItem::WorkCallback;
-
-    // set the task item id (not used right now)
-    taskQueueItem->taskId = 0;
-    
-    // add the task to the queue
-    AddTaskToQueue(_TaskQueue, taskQueueItem);
+    QueueWorkItem((void*)functionWorkItem);
 }
 
 // Node -----------------------------------------------------------------------

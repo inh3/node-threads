@@ -4,6 +4,8 @@
 
 // custom
 #include "environment.h"
+#include "web-work-item.h"
+#include "json.h"
 #include "utilities.h"
 
 WebWorker::WebWorker(const char* threadPoolKey)
@@ -20,7 +22,13 @@ WebWorker::~WebWorker()
     _OnMessage.Clear();
 }
 
-//void WebWorker::QueueWorkerFunction()
+void WebWorker::QueueWebWorker(
+    char* eventObject,
+    Handle<Object> threadPoolObject)
+{
+    WebWorkItem* webWorkItem = new WebWorkItem(threadPoolObject, eventObject);
+    QueueWorkItem((void*)webWorkItem);
+}
 
 // Node -----------------------------------------------------------------------
 
@@ -77,6 +85,13 @@ NAN_METHOD(WebWorker::PostMessage)
     eventObject->Set(
             String::NewSymbol("data"),
             NanNewLocal<Object>(args[0].As<Object>()));
+
+    char* eventStringified = JsonUtility::Stringify(eventObject);
+
+    WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
+    webWorker->QueueWebWorker(
+        eventStringified,
+        args.This());
 
     NanReturnValue(args.This());
 }

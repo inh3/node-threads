@@ -31,7 +31,11 @@ class WebWorker : public NodeThreads
         explicit WebWorker(const char* threadPoolKey);
         virtual ~WebWorker();
 
-        Persistent<Function> _OnMessage;
+        void QueueWebWorker(
+            char* eventObject,
+            Handle<Object> nodeThreads);
+
+        Persistent<Function>    _OnMessage;
 
         static NAN_METHOD(PostMessage);
         static NAN_METHOD(AddEventListener);

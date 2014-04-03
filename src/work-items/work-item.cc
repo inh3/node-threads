@@ -15,16 +15,16 @@
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
 
-WorkItem::WorkItem(Handle<Object> nodeThreads)
+WorkItem::WorkItem(Handle<Object> threadPoolObject)
 {
     printf("WorkItem::WorkItem\n");
     _WorkResult = NULL;
     _Exception = NULL;
 
 #if (NODE_MODULE_VERSION > 0x000B)
-    _NodeThreads.Reset(Isolate::GetCurrent(), nodeThreads);
+    _ThreadPoolObject.Reset(Isolate::GetCurrent(), threadPoolObject);
 #else
-    _NodeThreads = Persistent<Object>::New(nodeThreads);
+    _ThreadPoolObject = Persistent<Object>::New(threadPoolObject);
 #endif
 }
 
@@ -47,8 +47,8 @@ WorkItem::~WorkItem()
     _WorkOptions.Dispose();
     _WorkOptions.Clear();
 
-    _NodeThreads.Dispose();
-    _NodeThreads.Clear();
+    _ThreadPoolObject.Dispose();
+    _ThreadPoolObject.Clear();
 }
 
 void WorkItem::AsyncCallback(
@@ -58,13 +58,13 @@ void WorkItem::AsyncCallback(
 {
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope scope(Isolate::GetCurrent());
-    Local<Object> nodeThreads = Local<Object>::New(
+    Local<Object> threadPoolObject = Local<Object>::New(
             Isolate::GetCurrent(),
-            _NodeThreads);
+            _ThreadPoolObject);
 #else
     HandleScope scope;
-     Local<Object> nodeThreads = Local<Object>::New(
-            _NodeThreads);
+     Local<Object> threadPoolObject = Local<Object>::New(
+            _ThreadPoolObject);
 #endif
 
     Handle<Object> dataObject = Object::New();
@@ -75,7 +75,7 @@ void WorkItem::AsyncCallback(
     Handle<Value> eventHandle = Object::New();
     eventHandle.As<Object>()->Set(String::NewSymbol("data"), dataObject);
 
-    Handle<Function> emitFunction = nodeThreads->Get(
+    Handle<Function> emitFunction = threadPoolObject->Get(
         String::NewSymbol("emit"))
     .As<Function>();
 
@@ -84,7 +84,7 @@ void WorkItem::AsyncCallback(
         String::New("message"),
         eventHandle
     };
-    emitFunction->Call(nodeThreads, 2, args);
+    emitFunction->Call(threadPoolObject, 2, args);
 }
 
 // static methods -------------------------------------------------------------
@@ -101,8 +101,6 @@ void* WorkItem::WorkFunction(
     WorkItem* workItem = (WorkItem*)workItemPtr;
 
     // get currently running thread id
-    /*printf("[ Thread Pool Key ] %s\n",
-        threadContext->nodeThreads->GetThreadPoolKey().c_str());*/
     workItem->_ThreadId = SyncGetThreadId();
     workItem->_ThreadPoolKey.assign(
         threadContext->nodeThreads->GetThreadPoolKey().c_str());

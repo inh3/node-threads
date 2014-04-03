@@ -36,14 +36,6 @@ class NodeThreads : public ObjectWrap
 
         void Destroy();
         string GetThreadPoolKey();
-        
-        void QueueFunctionWorkItem(
-            const char* functionString,
-            Handle<Value> functionParam,
-            Handle<Function> callbackFunction,
-            Handle<Object> workOptions,
-            Handle<Object> calleeObject,
-            Handle<Object> nodeThreads);
 
     protected:
 
@@ -51,6 +43,8 @@ class NodeThreads : public ObjectWrap
         virtual ~NodeThreads();
 
         static NAN_METHOD(ExecuteFunction);
+
+        void QueueWorkItem(void* workItem);
 
         static Handle<Value> GetCalleeInfo();
 
@@ -60,6 +54,16 @@ class NodeThreads : public ObjectWrap
 
         THREAD_POOL_DATA        *_ThreadPool;
         TASK_QUEUE_DATA         *_TaskQueue;
+
+    private:
+
+        void QueueFunctionWorkItem(
+            const char* functionString,
+            Handle<Value> functionParam,
+            Handle<Function> callbackFunction,
+            Handle<Object> workOptions,
+            Handle<Object> calleeObject,
+            Handle<Object> nodeThreads);
 };
 
 #endif /* _NODE_THREADS_OBJECT_H_ */
