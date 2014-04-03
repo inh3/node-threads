@@ -10,10 +10,12 @@
 
 Persistent<Function> WebWorker::Constructor;
 
-WebWorker::WebWorker(const char* threadPoolKey)
+WebWorker::WebWorker(const char* threadPoolKey, bool isFunction)
     : NodeThreads(threadPoolKey, 1)
 {
     printf("WebWorker::WebWorker\n");
+
+    _IsFunction = isFunction;
 }
 
 WebWorker::~WebWorker()
@@ -78,8 +80,15 @@ NAN_METHOD(WebWorker::New)
         Local<Function> eventEmitter = NanPersistentToLocal(Environment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
+        // determine if this is being created from a file or a function
+        bool isFunction = false;
+        if(args[0]->IsFunction())
+        {
+            isFunction = true;
+        }
+
         // wrap the class and return the javascript object
-        WebWorker* webWorker = new WebWorker("");
+        WebWorker* webWorker = new WebWorker("", isFunction);
         webWorker->Wrap(args.This());
         NanReturnValue(args.This());
     }
@@ -107,6 +116,14 @@ NAN_METHOD(WebWorker::PostMessage)
 {
     NanScope();
 
+    WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
+
+    if(webWorker->_IsFunction == true)
+    {
+        Handle<Object> calleeObject = NodeThreads::GetCalleeInfo().As<Object>();
+        Utilities::PrintObjectProperties(calleeObject);
+    }
+
     Handle<Object> eventObject = Object::New();
 
     eventObject->Set(
@@ -115,7 +132,6 @@ NAN_METHOD(WebWorker::PostMessage)
 
     char* eventStringified = JsonUtility::Stringify(eventObject);
 
-    WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
     webWorker->QueueWebWorker(
         eventStringified,
         args.This());
