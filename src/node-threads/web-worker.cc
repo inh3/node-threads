@@ -80,11 +80,20 @@ NAN_METHOD(WebWorker::New)
         Local<Function> eventEmitter = NanPersistentToLocal(Environment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
+        // get reference to callee object directory
+        Handle<Object> calleeObject = NodeThreads::GetCalleeInfo().As<Object>();
+        String::Utf8Value dirNameStr(
+            calleeObject->Get(String::NewSymbol("__dirname")));
+
         // determine if this is being created from a file or a function
         bool isFunction = false;
         if(args[0]->IsFunction())
         {
             isFunction = true;
+        }
+        else
+        {
+            
         }
 
         // wrap the class and return the javascript object
@@ -117,12 +126,6 @@ NAN_METHOD(WebWorker::PostMessage)
     NanScope();
 
     WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
-
-    if(webWorker->_IsFunction == true)
-    {
-        Handle<Object> calleeObject = NodeThreads::GetCalleeInfo().As<Object>();
-        Utilities::PrintObjectProperties(calleeObject);
-    }
 
     Handle<Object> eventObject = Object::New();
 

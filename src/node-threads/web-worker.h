@@ -8,6 +8,11 @@ using namespace node;
 
 #include "nan.h"
 
+// C++
+#include <string>
+using namespace std;
+
+// custom
 #include "node-threads-object.h"
 
 class WebWorker : public NodeThreads
@@ -42,6 +47,10 @@ class WebWorker : public NodeThreads
         Persistent<Function>    _OnMessage;
 
         bool                    _IsFunction;
+
+        // __filename and __dirname to be set in context
+        string                  _FileName;
+        string                  _DirName;
 
         static NAN_METHOD(PostMessage);
         static NAN_METHOD(AddEventListener);
