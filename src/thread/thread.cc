@@ -54,6 +54,9 @@ void Thread::ThreadPostInit(void* threadContext)
     // get reference to the thread context
     thread_context_t* thisContext = (thread_context_t*)threadContext;
 
+    // get reference to node threads object
+    NodeThreads* nodeThreads = thisContext->nodeThreads;
+
     // get reference to thread isolate
     Isolate* isolate = thisContext->thread_isolate;
     {

@@ -11,7 +11,7 @@
 Persistent<Function> WebWorker::Constructor;
 
 WebWorker::WebWorker(const char* threadPoolKey, bool isFunction)
-    : NodeThreads(threadPoolKey, 1)
+    : NodeThreads(threadPoolKey, 1, true)
 {
     printf("WebWorker::WebWorker\n");
 
@@ -93,7 +93,7 @@ NAN_METHOD(WebWorker::New)
         }
         else
         {
-            
+
         }
 
         // wrap the class and return the javascript object

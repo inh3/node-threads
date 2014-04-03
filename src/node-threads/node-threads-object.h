@@ -36,10 +36,14 @@ class NodeThreads : public ObjectWrap
 
         void Destroy();
         string GetThreadPoolKey();
+        bool IsWebWorker();
 
     protected:
 
-        explicit NodeThreads(string threadPoolKey, uint32_t numThreads);
+        explicit NodeThreads(
+            string threadPoolKey,
+            uint32_t numThreads,
+            bool isWebWorker = false);
         virtual ~NodeThreads();
 
         static NAN_METHOD(ExecuteFunction);
@@ -51,6 +55,7 @@ class NodeThreads : public ObjectWrap
         string                  _ThreadPoolKey;
         uint32_t                _NumThreads;
         bool                    _Destroyed;
+        bool                    _IsWebWorker;
 
         THREAD_POOL_DATA        *_ThreadPool;
         TASK_QUEUE_DATA         *_TaskQueue;

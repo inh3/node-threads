@@ -20,11 +20,16 @@ Persistent<Function> NodeThreads::Constructor;
 
 // Instance -------------------------------------------------------------------
 
-NodeThreads::NodeThreads(string threadPoolKey, uint32_t numThreads)
+NodeThreads::NodeThreads(
+    string threadPoolKey,
+    uint32_t numThreads,
+    bool isWebWorker)
 {
     _ThreadPoolKey = threadPoolKey;
     _NumThreads = numThreads;
     _Destroyed = false;
+    _IsWebWorker = isWebWorker;
+
     printf("[ %s ] %u\n", _ThreadPoolKey.c_str(), _NumThreads);
 
     // create task queue and thread pool
@@ -61,6 +66,11 @@ void NodeThreads::Destroy()
 string NodeThreads::GetThreadPoolKey()
 {
     return _ThreadPoolKey;
+}
+
+bool NodeThreads::IsWebWorker()
+{
+    return _IsWebWorker;
 }
 
 void NodeThreads::QueueWorkItem(void* workItem)
