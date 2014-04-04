@@ -21,14 +21,12 @@ class ThreadIsolate
     public:
 
         // global context (per thread)
-        static void     InitializeGlobalContext(bool isWorker = false);
+        static void     InitializeGlobalContext();
 
         // copies the global context to module context
         static void     CloneGlobalContext(
                             Handle<Object> sourceObject,
                             Handle<Object> cloneObject);
-
-        static void     CreateWorkerContext(Handle<Object> contextObject);
 
         static void     CreateModuleContext(
                             Handle<Object> contextObject,

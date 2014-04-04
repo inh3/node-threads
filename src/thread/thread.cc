@@ -55,9 +55,6 @@ void Thread::ThreadPostInit(void* threadContext)
     // get reference to the thread context
     thread_context_t* thisContext = (thread_context_t*)threadContext;
 
-    // get reference to node threads object
-    NodeThreads* nodeThreads = thisContext->nodeThreads;
-
     // get reference to thread isolate
     Isolate* isolate = thisContext->thread_isolate;
     {
@@ -67,7 +64,7 @@ void Thread::ThreadPostInit(void* threadContext)
         // enter the isolate
         isolate->Enter();
 
-        ThreadIsolate::InitializeGlobalContext(nodeThreads->IsWebWorker());
+        ThreadIsolate::InitializeGlobalContext();
     }
 
     // leave the isolate
@@ -147,26 +144,29 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
     WorkItem* workItem = NULL;
     while((workItem = callbackManager->GetWorkItem()) != 0)
     {
+        if(workItem->_AsyncShouldProcess == true)
+        {
 #if (NODE_MODULE_VERSION > 0x000B)
-        Local<Object> workOptions = Local<Object>::New(
-            Isolate::GetCurrent(),
-            workItem->_WorkOptions);
+            Local<Object> workOptions = Local<Object>::New(
+                Isolate::GetCurrent(),
+                workItem->_WorkOptions);
 #else
-        Local<Object> workOptions = Local<Object>::New(
-            workItem->_WorkOptions);
+            Local<Object> workOptions = Local<Object>::New(
+                workItem->_WorkOptions);
 #endif
-        Handle<Value> exceptionHandle = JsonUtility::Parse(workItem->_Exception);
-        Handle<Value> workResultHandle = JsonUtility::Parse(workItem->_WorkResult);
+            Handle<Value> exceptionHandle = JsonUtility::Parse(workItem->_Exception);
+            Handle<Value> workResultHandle = JsonUtility::Parse(workItem->_WorkResult);
 
-        workOptions->Set(
-            String::NewSymbol("thread"), Number::New(workItem->_ThreadId));
-        workOptions->Set(
-            String::NewSymbol("threadpool"), String::New(workItem->_ThreadPoolKey.c_str()));
+            workOptions->Set(
+                String::NewSymbol("thread"), Number::New(workItem->_ThreadId));
+            workOptions->Set(
+                String::NewSymbol("threadpool"), String::New(workItem->_ThreadPoolKey.c_str()));
 
-        workItem->AsyncCallback(
-            (exceptionHandle == Undefined() ? (Handle<Value>)Null() : exceptionHandle),
-            workOptions,
-            workResultHandle);
+            workItem->AsyncCallback(
+                (exceptionHandle == Undefined() ? (Handle<Value>)Null() : exceptionHandle),
+                workOptions,
+                workResultHandle);
+        }
 
         delete workItem;
     }

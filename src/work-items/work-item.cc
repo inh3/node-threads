@@ -26,6 +26,8 @@ WorkItem::WorkItem(Handle<Object> threadPoolObject)
 #else
     _ThreadPoolObject = Persistent<Object>::New(threadPoolObject);
 #endif
+
+    _AsyncShouldProcess = false;
 }
 
 // 'delete' can only be called from main thread
@@ -153,9 +155,6 @@ void WorkItem::WorkCallback(
     }
     else
     {
-        // perform instance callback
-        workItem->InstanceWorkCallback();
-
         // add to callback queue
         callbackManager->AddWorkItem(workItem);
 

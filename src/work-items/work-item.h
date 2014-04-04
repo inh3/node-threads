@@ -34,6 +34,9 @@ class WorkItem
             Handle<Value> infoHandle,
             Handle<Value> resultHandle);
 
+        // indicates whether this should be processed in async callback
+        bool                    _AsyncShouldProcess;
+
         // reference to node thread pool
         Persistent<Object>      _ThreadPoolObject;
 

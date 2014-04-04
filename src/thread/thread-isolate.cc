@@ -9,7 +9,7 @@
 #include "json.h"
 #include "utilities.h"
 
-void ThreadIsolate::InitializeGlobalContext(bool isWorker)
+void ThreadIsolate::InitializeGlobalContext()
 {
     // get reference to current isolate
     Isolate* isolate = Isolate::GetCurrent();
@@ -77,11 +77,6 @@ void ThreadIsolate::InitializeGlobalContext(bool isWorker)
 
     // attach object to context
     globalContext->Set(String::NewSymbol("console"), consoleObject);
-
-    if(isWorker == true)
-    {
-        CreateWorkerContext(globalContext);
-    }
 }
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)
@@ -98,20 +93,6 @@ void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Objec
     cloneObject->Set(String::NewSymbol("console"), sourceObject->Get(String::NewSymbol("console")));
     cloneObject->Set(String::NewSymbol("process"), sourceObject->Get(String::NewSymbol("process")));
     cloneObject->Set(String::NewSymbol("require"), sourceObject->Get(String::NewSymbol("require")));
-}
-
-void ThreadIsolate::CreateWorkerContext(Handle<Object> contextObject)
-{
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
-
-    Handle<Object> selfObject = Object::New();
-    contextObject->Set(String::NewSymbol("self"), selfObject);
-    contextObject->Set(String::NewSymbol("onmessage"), Undefined());
 }
 
 void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const FileInfo* fileInfo)

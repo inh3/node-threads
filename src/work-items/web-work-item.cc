@@ -52,7 +52,7 @@ void WebWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
 #endif
 
     //printf("Worker Script:\n%s\n", _WorkerScript);
-    printf("Event Object:\n%s\n", _EventObject);
+    //printf("Event Object:\n%s\n", _EventObject);
 
     if(_WorkerScript != NULL)
     {
@@ -66,7 +66,7 @@ void WebWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
 
 void WebWorkItem::InstanceWorkCallback()
 {
-
+    _AsyncShouldProcess = false;
 }
 
 void WebWorkItem::ProcessWorkerScript(Handle<Object> contextObject)
@@ -83,8 +83,12 @@ void WebWorkItem::ProcessWorkerScript(Handle<Object> contextObject)
     thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
     WebWorker* webWorker = (WebWorker*)threadContext->nodeThreads;
 
+    CreateWorkerContext();
+
     Handle<Script> workerScript = Script::New(String::New(_WorkerScript));
         workerScript->Run();
+
+    //Utilities::PrintObjectProperties(Context::GetCurrent()->Global());
 
 #if (NODE_MODULE_VERSION > 0x000B)
     webWorker->_MessageFunction.Reset(
@@ -136,4 +140,21 @@ void WebWorkItem::ExecuteWorkerScript()
     {
         printf("\n\n*** Executed Successfully!\n\n");
     }
+}
+
+void WebWorkItem::CreateWorkerContext()
+{
+#if (NODE_MODULE_VERSION > 0x000B)
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+#else
+    HandleScope scope;
+#endif
+
+    Handle<Object> contextObject = Context::GetCurrent()->Global();
+
+    Handle<Object> selfObject = Object::New();
+    contextObject->Set(String::NewSymbol("self"), selfObject);
+
+    contextObject->Set(String::NewSymbol("onmessage"), Undefined());
 }

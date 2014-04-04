@@ -30,6 +30,7 @@ class WebWorkItem : public WorkItem
         char*                   _EventObject;
         char*                   _WorkerScript;
 
+        void CreateWorkerContext();
         void ProcessWorkerScript(Handle<Object> contextObject);
         void ExecuteWorkerScript();
 

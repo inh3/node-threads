@@ -195,7 +195,7 @@ void FunctionWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
 
 void FunctionWorkItem::InstanceWorkCallback()
 {
-    //printf("FunctionWorkItem::InstanceWorkCallback\n");
+    _AsyncShouldProcess = true;
 }
 
 void FunctionWorkItem::AsyncCallback(

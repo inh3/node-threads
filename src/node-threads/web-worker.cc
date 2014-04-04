@@ -63,15 +63,12 @@ void WebWorker::QueueWebWorker(
 
 char* WebWorker::ProcessFunction(Handle<Function> workerFunction)
 {
-    printf("\n\n****** ProcessFunction\n\n");
-
     NanScope();
 
     String::Utf8Value funcStr(workerFunction->ToString());
     string funcToExe(*funcStr);
     funcToExe.insert(0, "(");
     funcToExe.append(")()");
-    printf("%s\n", funcToExe.c_str());
 
     char* returnStr = (char*)malloc(funcToExe.length() + 1);
     memset(returnStr, 0, funcToExe.length() + 1);
@@ -118,7 +115,7 @@ NAN_METHOD(WebWorker::New)
         }
 
         // create and wrap the class and return the javascript object
-        WebWorker* webWorker = new WebWorker("", isFunction);
+        WebWorker* webWorker = new WebWorker("WebWorker", isFunction);
         char* funcStr = webWorker->ProcessFunction(args[0].As<Function>());
         webWorker->Wrap(args.This());
 
