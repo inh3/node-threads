@@ -11,6 +11,7 @@
 #include <node_version.h>
 
 // custom
+#include "web-worker.h"
 #include "thread-isolate.h"
 #include "callback-manager.h"
 #include "work-item.h"
@@ -102,6 +103,15 @@ void Thread::ThreadDestroy(void* threadContext)
             delete pWrap;
         }
         thisContext->native_modules->clear();
+
+        // dispose web worker message function
+        NodeThreads* nodeThreads = thisContext->nodeThreads;
+        if(nodeThreads->IsWebWorker())
+        {
+            WebWorker* webWorker = (WebWorker*)nodeThreads;
+            webWorker->_MessageFunction.Dispose();
+            webWorker->_MessageFunction.Clear();
+        }
 
         // dispose of js context
         thisContext->isolate_context.Dispose();

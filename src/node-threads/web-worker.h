@@ -35,6 +35,9 @@ class WebWorker : public NodeThreads
         virtual void Ref() { ObjectWrap::Ref(); }
         virtual void Unref() { ObjectWrap::Unref(); }
 
+        // this is the function that executes in background thread
+        Persistent<Function>    _MessageFunction;
+
     private:
 
         explicit WebWorker(const char* threadPoolKey, bool isFunction);

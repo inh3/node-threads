@@ -27,8 +27,11 @@ class WebWorkItem : public WorkItem
 
     private:
 
-        char*             _EventObject;
-        char*             _WorkerScript;
+        char*                   _EventObject;
+        char*                   _WorkerScript;
+
+        void ProcessWorkerScript(Handle<Object> contextObject);
+        void ExecuteWorkerScript();
 
         // ensure default constructor can't get called
         WebWorkItem();
