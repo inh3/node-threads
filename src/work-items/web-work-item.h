@@ -17,7 +17,8 @@ class WebWorkItem : public WorkItem
 
         WebWorkItem(
             Handle<Object> webWorker,
-            char* eventObject);
+            char* eventObject,
+            char* workerScript);
 
         virtual ~WebWorkItem();
 
@@ -27,6 +28,7 @@ class WebWorkItem : public WorkItem
     private:
 
         char*             _EventObject;
+        char*             _WorkerScript;
 
         // ensure default constructor can't get called
         WebWorkItem();

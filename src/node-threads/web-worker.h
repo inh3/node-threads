@@ -42,10 +42,12 @@ class WebWorker : public NodeThreads
 
         void QueueWebWorker(
             char* eventObject,
+            char* workerScript,
             Handle<Object> nodeThreads);
 
-        Persistent<Function>    _OnMessage;
+        char* ProcessFunction(Handle<Function> workerFunction);
 
+        Persistent<Function>    _OnMessage;
         bool                    _IsFunction;
 
         // __filename and __dirname to be set in context

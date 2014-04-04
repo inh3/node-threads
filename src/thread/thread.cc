@@ -66,7 +66,7 @@ void Thread::ThreadPostInit(void* threadContext)
         // enter the isolate
         isolate->Enter();
 
-        ThreadIsolate::InitializeGlobalContext();
+        ThreadIsolate::InitializeGlobalContext(nodeThreads->IsWebWorker());
     }
 
     // leave the isolate
