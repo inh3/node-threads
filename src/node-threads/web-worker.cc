@@ -38,12 +38,14 @@ void WebWorker::Init()
     constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     // inherit from event emitter
-    Local<Function> inheritsFunction = Environment::Util->Get(String::NewSymbol("inherits")).As<Function>();
+    Local<Function> inheritsFunction = NanPersistentToLocal(
+        Environment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
+
     Local<Value> inheritArgs[] = { 
         constructorTemplate->GetFunction(),
         NanPersistentToLocal(Environment::EventEmitter)
     };
-    inheritsFunction->Call(Environment::Module, 2, inheritArgs);
+    inheritsFunction->Call(NanPersistentToLocal(Environment::Module), 2, inheritArgs);
     
     NanAssignPersistent(
         Function,

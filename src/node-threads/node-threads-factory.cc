@@ -44,12 +44,14 @@ void NodeThreadsFactory::Init()
         v8::ReadOnly);
 
     // inherit from event emitter
-    Local<Function> inheritsFunction = Environment::Util->Get(String::NewSymbol("inherits")).As<Function>();
+    Local<Function> inheritsFunction = NanPersistentToLocal(
+        Environment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
+
     Local<Value> inheritArgs[] = { 
         constructorTemplate->GetFunction(),
         NanPersistentToLocal(Environment::EventEmitter)
     };
-    inheritsFunction->Call(Environment::Module, 2, inheritArgs);
+    inheritsFunction->Call(NanPersistentToLocal(Environment::Module), 2, inheritArgs);
 
     // expose the constructor
     NanAssignPersistent(Function, NodeThreads::Constructor, constructorTemplate->GetFunction());

@@ -92,12 +92,15 @@ void Environment::StackTraceInitialize(const char* moduleDir)
 
 void Environment::NodeInitialize()
 {
+    Handle<Object> envModule = NanPersistentToLocal(
+        Environment::Module).As<Object>();
+
     // store reference to event emitter
     Local<Function> requireFunction = NanNewLocal<Function>(
-        Environment::Module->Get(String::NewSymbol("require")).As<Function>());
+        envModule->Get(String::NewSymbol("require")).As<Function>());
     Local<Value> args[] = { String::New("events") };
     Local<Object> eventsModule = requireFunction->Call(
-        Environment::Module, 1, args)->ToObject();
+        envModule, 1, args)->ToObject();
     NanAssignPersistent(
         Function,
         Environment::EventEmitter, 
@@ -106,7 +109,7 @@ void Environment::NodeInitialize()
     // store reference to path
     args[0] = String::New("path");
     Local<Object> pathModule = requireFunction->Call(
-        Environment::Module, 1, args)->ToObject();
+        envModule, 1, args)->ToObject();
     NanAssignPersistent(
         Object,
         Environment::Path, 
@@ -115,7 +118,7 @@ void Environment::NodeInitialize()
     // store reference to util
     args[0] = String::New("util");
     Local<Object> utilModule = requireFunction->Call(
-        Environment::Module, 1, args)->ToObject();
+        envModule, 1, args)->ToObject();
     NanAssignPersistent(
         Object,
         Environment::Util, 
@@ -124,10 +127,10 @@ void Environment::NodeInitialize()
     // store number of cpu cores
     args[0] = String::New("os");
     Local<Object> osModule = requireFunction->Call(
-        Environment::Module, 1, args)->ToObject();
+        envModule, 1, args)->ToObject();
     Local<Function> cpuFunction = osModule->Get(String::NewSymbol("cpus")).As<Function>();
     Local<Array> cpuArray = cpuFunction->Call(
-        Environment::Module, 0, NULL).As<Array>();
+        envModule, 0, NULL).As<Array>();
     NanAssignPersistent(
         Value,
         Environment::NumCPUs,

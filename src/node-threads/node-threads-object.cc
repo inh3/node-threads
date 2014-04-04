@@ -233,10 +233,10 @@ Handle<Value> NodeThreads::GetCalleeInfo()
 #if (NODE_MODULE_VERSION > 0x000B)
     Local<Function> strackTraceFunction = Local<Function>::New(
         Isolate::GetCurrent(),
-        CalleeByStackTrace);
+        Environment::CalleeByStackTrace);
     Local<Value> pathModule = Local<Object>::New(
         Isolate::GetCurrent(),
-        Path);
+        Environment::Path);
 #else
     Local<Function> strackTraceFunction = Local<Function>::New(Environment::CalleeByStackTrace);
     Local<Value> pathModule = Local<Object>::New(Environment::Path);

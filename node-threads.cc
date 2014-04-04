@@ -105,7 +105,7 @@ NAN_METHOD(SubStack)
         FunctionTemplate::New(DeleteThreadPool)->GetFunction());
 
     nodeThreadsModule->Set(NanSymbol("Worker"),
-        WebWorker::Constructor);
+        NanPersistentToLocal(WebWorker::Constructor));
 
     NanReturnValue(nodeThreadsModule);
 }
