@@ -40,6 +40,11 @@ class WebWorkItem : public WorkItem
         // declare private copy constructor methods to ensure they can't be called
         WebWorkItem(WebWorkItem const&);
         void operator=(WebWorkItem const&);
+
+        // constructor 'new'
+        static NAN_METHOD(AddEventListener);
+        static NAN_METHOD(PostMessage);
+        static NAN_METHOD(Close);
 };
 
 #endif /* _WEB_WORK_ITEM_H_ */

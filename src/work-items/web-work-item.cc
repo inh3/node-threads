@@ -151,10 +151,38 @@ void WebWorkItem::CreateWorkerContext()
     HandleScope scope;
 #endif
 
+    Handle<Function> postMessage = FunctionTemplate::New(
+        WebWorkItem::PostMessage)->GetFunction();
+    Handle<Function> addEventListener = FunctionTemplate::New(
+        WebWorkItem::AddEventListener)->GetFunction();
+    Handle<Function> close = FunctionTemplate::New(
+        WebWorkItem::Close)->GetFunction();
+
     Handle<Object> contextObject = Context::GetCurrent()->Global();
-
-    Handle<Object> selfObject = Object::New();
-    contextObject->Set(String::NewSymbol("self"), selfObject);
-
+    
+    contextObject->Set(String::NewSymbol("self"), contextObject);
     contextObject->Set(String::NewSymbol("onmessage"), Undefined());
+    contextObject->Set(String::NewSymbol("postMessage"), postMessage);
+    contextObject->Set(String::NewSymbol("addEventListener"), addEventListener);
+    contextObject->Set(String::NewSymbol("close"), close);
+}
+
+// NODE METHODS ----------------------------------------------------------------
+
+NAN_METHOD(WebWorkItem::AddEventListener)
+{
+    NanScope();
+    NanReturnValue(args.This());
+}
+
+NAN_METHOD(WebWorkItem::PostMessage)
+{
+    NanScope();
+    NanReturnValue(args.This());
+}
+
+NAN_METHOD(WebWorkItem::Close)
+{
+    NanScope();
+    NanReturnValue(Undefined());
 }
