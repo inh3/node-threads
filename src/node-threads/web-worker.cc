@@ -146,6 +146,18 @@ NAN_SETTER(WebWorker::OnMessageSet)
     WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
     Local<Function> onMessage = value.As<Function>();
     NanAssignPersistent(Function, webWorker->_OnMessage, onMessage);
+
+    // remove existing listener
+    Handle<Function> removeAllFunc = args.This()->Get(
+            String::NewSymbol("removeAllListeners")).As<Function>();
+    Handle<Value> removeAllArgs[] = { String::New("message") };
+    removeAllFunc->Call(args.This(), 1, removeAllArgs);
+
+    // add then new listener
+    Handle<Function> onFunction = args.This()->Get(
+            String::NewSymbol("on")).As<Function>();
+    Handle<Value> onArgs[] = { String::New("message"), value };
+    onFunction->Call(args.This(), 2, onArgs);
 }
 
 NAN_METHOD(WebWorker::PostMessage)
@@ -159,7 +171,6 @@ NAN_METHOD(WebWorker::PostMessage)
     eventObject->Set(
             String::NewSymbol("data"),
             NanNewLocal<Object>(args[0].As<Object>()));
-
     char* eventStringified = JsonUtility::Stringify(eventObject);
 
     webWorker->QueueWebWorker(
@@ -173,6 +184,16 @@ NAN_METHOD(WebWorker::PostMessage)
 NAN_METHOD(WebWorker::AddEventListener)
 {
     NanScope();
+
+    if((args.Length() == 2) && args[0]->IsString() && args[1]->IsFunction())
+    {
+        Handle<Function> onFunction = args.This()->Get(
+            String::NewSymbol("on")).As<Function>();
+
+        Handle<Value> onArgs[] = { args[0], args[1] };
+        onFunction->Call(args.This(), 2, onArgs);
+    }
+
     NanReturnValue(args.This());
 }
 

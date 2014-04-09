@@ -31,6 +31,7 @@ class WebWorkItem : public WorkItem
         char*                   _WorkerScript;
 
         void CreateWorkerContext();
+        void StoreHiddenReference();
         void ProcessWorkerScript(Handle<Object> contextObject);
         void ExecuteWorkerScript();
 
