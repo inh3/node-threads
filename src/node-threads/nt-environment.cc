@@ -1,6 +1,6 @@
-#define _ENVIRONMENT_C_
+#define _NTENVIRONMENT_C_
 
-#include "environment.h"
+#include "nt-environment.h"
 
 // custom
 #include "thread-isolate.h"
@@ -10,28 +10,28 @@
 
 // static member variables -----------------------------------------------------
 
-bool                    Environment::_IsInitialized = false;
+bool                    NTEnvironment::_IsInitialized = false;
 
 // overall module global references
-Persistent<Object>      Environment::Exports;
-Persistent<Object>      Environment::Module;
+Persistent<Object>      NTEnvironment::Exports;
+Persistent<Object>      NTEnvironment::Module;
 
 // node global references
-Persistent<Function>    Environment::EventEmitter;
-Persistent<Object>      Environment::Path;
-Persistent<Object>      Environment::Util;
+Persistent<Function>    NTEnvironment::EventEmitter;
+Persistent<Object>      NTEnvironment::Path;
+Persistent<Object>      NTEnvironment::Util;
 
 // custom global references
-Persistent<Function>    Environment::CalleeByStackTrace;
-Persistent<Function>    Environment::Guid;
-Persistent<Value>       Environment::NumCPUs;
+Persistent<Function>    NTEnvironment::CalleeByStackTrace;
+Persistent<Function>    NTEnvironment::Guid;
+Persistent<Value>       NTEnvironment::NumCPUs;
 
-string                  Environment::ModuleDir;
-string                  Environment::ProcessDir;
+string                  NTEnvironment::ModuleDir;
+string                  NTEnvironment::ProcessDir;
 
 // public methods --------------------------------------------------------------
 
-void Environment::Initialize(const char* moduleDir, const char* processDir)
+void NTEnvironment::Initialize(const char* moduleDir, const char* processDir)
 {
     // make sure to only initialize once
     if(_IsInitialized == false)
@@ -52,7 +52,7 @@ void Environment::Initialize(const char* moduleDir, const char* processDir)
 
 // private methods -------------------------------------------------------------
 
-void Environment::GuidInitialize(const char* moduleDir)
+void NTEnvironment::GuidInitialize(const char* moduleDir)
 {
     NanScope();
 
@@ -71,7 +71,7 @@ void Environment::GuidInitialize(const char* moduleDir)
         guidFunction.As<Function>());
 }
 
-void Environment::StackTraceInitialize(const char* moduleDir)
+void NTEnvironment::StackTraceInitialize(const char* moduleDir)
 {
     NanScope();
 
@@ -90,10 +90,10 @@ void Environment::StackTraceInitialize(const char* moduleDir)
         stackTraceFunction.As<Function>());
 }
 
-void Environment::NodeInitialize()
+void NTEnvironment::NodeInitialize()
 {
     Handle<Object> envModule = NanPersistentToLocal(
-        Environment::Module).As<Object>();
+        NTEnvironment::Module).As<Object>();
 
     // store reference to event emitter
     Local<Function> requireFunction = NanNewLocal<Function>(
@@ -103,7 +103,7 @@ void Environment::NodeInitialize()
         envModule, 1, args)->ToObject();
     NanAssignPersistent(
         Function,
-        Environment::EventEmitter, 
+        NTEnvironment::EventEmitter, 
         eventsModule->Get(String::NewSymbol("EventEmitter")).As<Function>());
 
     // store reference to path
@@ -112,7 +112,7 @@ void Environment::NodeInitialize()
         envModule, 1, args)->ToObject();
     NanAssignPersistent(
         Object,
-        Environment::Path, 
+        NTEnvironment::Path, 
         pathModule);
 
     // store reference to util
@@ -121,7 +121,7 @@ void Environment::NodeInitialize()
         envModule, 1, args)->ToObject();
     NanAssignPersistent(
         Object,
-        Environment::Util, 
+        NTEnvironment::Util, 
         utilModule);
 
     // store number of cpu cores
@@ -133,6 +133,6 @@ void Environment::NodeInitialize()
         envModule, 0, NULL).As<Array>();
     NanAssignPersistent(
         Value,
-        Environment::NumCPUs,
+        NTEnvironment::NumCPUs,
         Uint32::NewFromUnsigned((cpuArray->Length() > 2 ? cpuArray->Length() - 1 : 2)));
 }

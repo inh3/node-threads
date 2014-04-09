@@ -10,7 +10,7 @@
 #include "callback-manager.h"
 #include "file_info.h"
 #include "utilities.h"
-#include "environment.h"
+#include "nt-environment.h"
 
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());

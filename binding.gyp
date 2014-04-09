@@ -6,7 +6,7 @@
         'target_name': 'node-threads',
         'sources': [
             'node-threads.cc',
-            'src/node-threads/environment.cc',
+            'src/node-threads/nt-environment.cc',
             'src/node-threads/node-threads-object.cc',
             'src/node-threads/web-worker.cc',
             'src/node-threads/node-threads-factory.cc',

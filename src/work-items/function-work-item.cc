@@ -15,7 +15,7 @@ using namespace v8;
 #include <string.h>
 
 // custom
-#include "environment.h"
+#include "nt-environment.h"
 #include "json.h"
 #include "error-handling.h"
 #include "utilities.h"
@@ -93,10 +93,10 @@ void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 #if (NODE_MODULE_VERSION > 0x000B)
         Local<Function> guidFunction = Local<Function>::New(
             Isolate::GetCurrent(),
-            Environment::Guid);
+            NTEnvironment::Guid);
 #else
         Local<Function> guidFunction = Local<Function>::New(
-            Environment::Guid);
+            NTEnvironment::Guid);
 #endif
 
         Handle<Value> guidHandle = guidFunction->Call(

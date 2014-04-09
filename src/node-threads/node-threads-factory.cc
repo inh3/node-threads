@@ -12,7 +12,7 @@ using namespace node;
 // node-threads
 #include "utilities.h"
 #include "node-threads-object.h"
-#include "environment.h"
+#include "nt-environment.h"
 
 NodeThreadMap NodeThreadsFactory::_NodeThreadMap;
 
@@ -45,13 +45,13 @@ void NodeThreadsFactory::Init()
 
     // inherit from event emitter
     Local<Function> inheritsFunction = NanPersistentToLocal(
-        Environment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
+        NTEnvironment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
 
     Local<Value> inheritArgs[] = { 
         constructorTemplate->GetFunction(),
-        NanPersistentToLocal(Environment::EventEmitter)
+        NanPersistentToLocal(NTEnvironment::EventEmitter)
     };
-    inheritsFunction->Call(NanPersistentToLocal(Environment::Module), 2, inheritArgs);
+    inheritsFunction->Call(NanPersistentToLocal(NTEnvironment::Module), 2, inheritArgs);
 
     // expose the constructor
     NanAssignPersistent(Function, NodeThreads::Constructor, constructorTemplate->GetFunction());

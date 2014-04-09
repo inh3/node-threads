@@ -3,7 +3,7 @@
 #include "web-worker.h"
 
 // custom
-#include "environment.h"
+#include "nt-environment.h"
 #include "web-work-item.h"
 #include "json.h"
 #include "utilities.h"
@@ -39,13 +39,13 @@ void WebWorker::Init()
 
     // inherit from event emitter
     Local<Function> inheritsFunction = NanPersistentToLocal(
-        Environment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
+        NTEnvironment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
 
     Local<Value> inheritArgs[] = { 
         constructorTemplate->GetFunction(),
-        NanPersistentToLocal(Environment::EventEmitter)
+        NanPersistentToLocal(NTEnvironment::EventEmitter)
     };
-    inheritsFunction->Call(NanPersistentToLocal(Environment::Module), 2, inheritArgs);
+    inheritsFunction->Call(NanPersistentToLocal(NTEnvironment::Module), 2, inheritArgs);
     
     NanAssignPersistent(
         Function,
@@ -97,7 +97,7 @@ NAN_METHOD(WebWorker::New)
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
-        Local<Function> eventEmitter = NanPersistentToLocal(Environment::EventEmitter);
+        Local<Function> eventEmitter = NanPersistentToLocal(NTEnvironment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
         // get reference to callee object directory
@@ -168,9 +168,17 @@ NAN_METHOD(WebWorker::PostMessage)
 
     Handle<Object> eventObject = Object::New();
 
-    eventObject->Set(
+    if(args[0]->IsArrayBufferView() || args[0]->IsArrayBuffer())
+    {
+        printf("\n**** GOT ARRAY BUFFER ****\n");
+    }
+    else
+    {
+        eventObject->Set(
             String::NewSymbol("data"),
             NanNewLocal<Object>(args[0].As<Object>()));
+    }
+
     char* eventStringified = JsonUtility::Stringify(eventObject);
 
     webWorker->QueueWebWorker(

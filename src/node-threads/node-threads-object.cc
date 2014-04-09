@@ -14,7 +14,7 @@ using namespace node;
 #include "function-work-item.h"
 #include "utilities.h"
 #include "file_info.h"
-#include "environment.h"
+#include "nt-environment.h"
 
 Persistent<Function> NodeThreads::Constructor;
 
@@ -131,7 +131,7 @@ NAN_METHOD(NodeThreads::New)
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
-        Local<Function> eventEmitter = NanPersistentToLocal(Environment::EventEmitter);
+        Local<Function> eventEmitter = NanPersistentToLocal(NTEnvironment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
         // get the unique name param of the node thread instance
@@ -139,7 +139,7 @@ NAN_METHOD(NodeThreads::New)
         string threadPoolKey(*threadPoolName);
 
         // get number of threads
-        Local<Value> numCpus = NanPersistentToLocal(Environment::NumCPUs);
+        Local<Value> numCpus = NanPersistentToLocal(NTEnvironment::NumCPUs);
         uint32_t numThreads = numCpus->Uint32Value();
         if(args.Length() == 2)
         {
@@ -233,13 +233,13 @@ Handle<Value> NodeThreads::GetCalleeInfo()
 #if (NODE_MODULE_VERSION > 0x000B)
     Local<Function> strackTraceFunction = Local<Function>::New(
         Isolate::GetCurrent(),
-        Environment::CalleeByStackTrace);
+        NTEnvironment::CalleeByStackTrace);
     Local<Value> pathModule = Local<Object>::New(
         Isolate::GetCurrent(),
-        Environment::Path);
+        NTEnvironment::Path);
 #else
-    Local<Function> strackTraceFunction = Local<Function>::New(Environment::CalleeByStackTrace);
-    Local<Value> pathModule = Local<Object>::New(Environment::Path);
+    Local<Function> strackTraceFunction = Local<Function>::New(NTEnvironment::CalleeByStackTrace);
+    Local<Value> pathModule = Local<Object>::New(NTEnvironment::Path);
 #endif
 
     // get the __filename and __dirname properties

@@ -1,5 +1,5 @@
-#ifndef _ENVIRONMENT_H_
-#define _ENVIRONMENT_H_
+#ifndef _NTENVIRONMENT_H_
+#define _NTENVIRONMENT_H_
 
 #include <v8.h>
 #include <node.h>
@@ -12,7 +12,7 @@ using namespace node;
 #include <string>
 using namespace std;
 
-class Environment
+class NTEnvironment
 {
     public:
 
@@ -44,4 +44,4 @@ class Environment
         static bool                     _IsInitialized;
 };
 
-#endif /* _ENVIRONMENT_H_ */
+#endif /* _NTENVIRONMENT_H_ */

@@ -12,7 +12,7 @@ using namespace node;
 #include "web-worker.h"
 
 // custom
-#include "environment.h"
+#include "nt-environment.h"
 
 /**
  * Gets or creates a thread pool instance.
@@ -92,7 +92,7 @@ NAN_METHOD(SubStack)
     String::Utf8Value processDirString(args[1]->ToString());
 
     // initialize environment
-    Environment::Initialize(*dirString, *processDirString);
+    NTEnvironment::Initialize(*dirString, *processDirString);
 
     NodeThreadsFactory::Init();
     WebWorker::Init();
@@ -114,12 +114,12 @@ void init(Handle<Object> exports, Handle<Object> module)
 {
     NanAssignPersistent(
         Object,
-        Environment::Exports,
+        NTEnvironment::Exports,
         exports);
 
     NanAssignPersistent(
         Object,
-        Environment::Module,
+        NTEnvironment::Module,
         module);
 
     module->Set(String::NewSymbol("exports"),
