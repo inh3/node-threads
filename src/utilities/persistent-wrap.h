@@ -1,11 +1,11 @@
 #ifndef _PERSISTENT_WRAP_H_
 #define _PERSISTENT_WRAP_H_
 
-#include <v8.h>
 #include <node.h>
 #include <node_object_wrap.h>
-using namespace v8;
 using namespace node;
+#include <v8.h>
+using namespace v8;
 
 #include "nan.h"
 

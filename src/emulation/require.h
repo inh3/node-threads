@@ -3,9 +3,9 @@
 
 // node
 #include <node.h>
+using namespace node;
 #include <v8.h>
 using namespace v8;
-using namespace node;
 
 // C++
 #include <string>

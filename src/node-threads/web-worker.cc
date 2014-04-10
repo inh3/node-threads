@@ -171,6 +171,18 @@ NAN_METHOD(WebWorker::PostMessage)
     if(args[0]->IsArrayBufferView() || args[0]->IsArrayBuffer())
     {
         printf("\n**** GOT ARRAY BUFFER ****\n");
+        Handle<ArrayBufferView> arrayBufferView = Handle<ArrayBufferView>::Cast(args[0]);
+        Handle<ArrayBuffer> arrayBuffer = arrayBufferView->Buffer();
+        ArrayBuffer::Contents contents = arrayBuffer->Externalize();
+        arrayBuffer->Neuter();
+        printf("Contents Length: %d\n", contents.ByteLength());
+        for(int i = 0; i < 10; i++)
+        {
+            printf("%u: %u\n", i, ((char*)contents.Data())[i]);
+        }
+        printf("Before delete...\n");
+        //delete[] static_cast<char*>(contents.Data());
+        printf("After delete...\n");
     }
     else
     {
