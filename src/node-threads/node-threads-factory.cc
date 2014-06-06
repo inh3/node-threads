@@ -2,8 +2,7 @@
 
 #include "node-threads-factory.h"
 
-#include <node.h>
-using namespace node;
+//using namespace node;
 #include <v8.h>
 using namespace v8;
 
@@ -88,7 +87,7 @@ NAN_METHOD(NodeThreadsFactory::CreateInstance)
     Local<Object> newInstance = NanPersistentToLocal(NodeThreads::Constructor)->NewInstance(argc, argv);
 
     // add the node threads instance to the hash map for lookup next time
-    NodeThreads *nodeThread = ObjectWrap::Unwrap<NodeThreads>(newInstance);
+    NodeThreads *nodeThread = node::ObjectWrap::Unwrap<NodeThreads>(newInstance);
     nodeThread->Ref();
     NodeThreadsFactory::_NodeThreadMap.insert(make_pair(nodeThreadKey, nodeThread));
 

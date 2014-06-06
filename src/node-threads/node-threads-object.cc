@@ -2,8 +2,7 @@
 
 #include "node-threads-object.h"
 
-#include <node.h>
-using namespace node;
+//using namespace node;
 #include <v8.h>
 using namespace v8;
 

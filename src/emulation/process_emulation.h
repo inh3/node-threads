@@ -2,8 +2,7 @@
 #define _PROCESS_EMULATION_H_
 
 // node
-#include <node.h>
-using namespace node;
+//using namespace node;
 #include <v8.h>
 using namespace v8;
 

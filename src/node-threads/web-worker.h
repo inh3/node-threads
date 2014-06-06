@@ -1,8 +1,7 @@
 #ifndef _WEB_WORKER_H_
 #define _WEB_WORKER_H_
 
-#include <node.h>
-using namespace node;
+//using namespace node;
 #include <v8.h>
 using namespace v8;
 

@@ -2,7 +2,6 @@
 #define _WORK_ITEM_H_
 
 // node
-#include <node.h>
 #include <node_version.h>
 #include <v8.h>
 using namespace v8;

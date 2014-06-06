@@ -2,7 +2,6 @@
 #define _UTILITIES_H_
 
 // node
-#include <node.h>
 #include <v8.h>
 using namespace v8;
 

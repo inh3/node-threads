@@ -1,8 +1,7 @@
 #ifndef _NODE_THREADS_FACTORY_H_
 #define _NODE_THREADS_FACTORY_H_
 
-#include <node.h>
-using namespace node;
+//using namespace node;
 #include <v8.h>
 using namespace v8;
 

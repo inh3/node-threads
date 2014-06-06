@@ -4,9 +4,8 @@
 #include <string>
 using namespace std;
 
-#include <node.h>
 #include <node_object_wrap.h>
-using namespace node;
+//using namespace node;
 #include <v8.h>
 using namespace v8;
 
@@ -16,7 +15,7 @@ using namespace v8;
 #include "task_queue.h"
 #include "thread_pool.h"
 
-class NodeThreads : public ObjectWrap
+class NodeThreads : public node::ObjectWrap
 {
     public:
 
@@ -31,8 +30,8 @@ class NodeThreads : public ObjectWrap
 
         // provide public access to Node's ObjectWrap
         // Ref() and Unref() functions for use by the factory
-        virtual void Ref() { ObjectWrap::Ref(); }
-        virtual void Unref() { ObjectWrap::Unref(); }
+        virtual void Ref() { node::ObjectWrap::Ref(); }
+        virtual void Unref() { node::ObjectWrap::Unref(); }
 
         void Destroy();
         string GetThreadPoolKey();
