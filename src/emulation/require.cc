@@ -117,11 +117,7 @@ NAN_METHOD(Require::RequireMethod)
     // get reference to thread context for this isolate
     thread_context_t *threadContext = (thread_context_t*)IsolateGetData(isolate);
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
     // module export to be returned from require(...)
     Local<Object> exports;
@@ -134,12 +130,7 @@ NAN_METHOD(Require::RequireMethod)
             threadContext->native_modules->find(*moduleName);
     if(nativeModuleItr != threadContext->native_modules->end())
     {
-#if (NODE_MODULE_VERSION > 0x000B)
-        exports = NanObjectWrapHandle(nativeModuleItr->second);
-#else
-        exports = Local<Object>::New(
-            NanObjectWrapHandle(nativeModuleItr->second));
-#endif
+        exports = NanNew(NanObjectWrapHandle(nativeModuleItr->second));
     }
 
     NanReturnValue(exports);

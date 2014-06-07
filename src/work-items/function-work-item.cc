@@ -53,11 +53,7 @@ FunctionWorkItem::FunctionWorkItem(
 
     memcpy(_FunctionString + stringOffset, FunctionPostfix, PostFixLen);
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    _CallbackFunction.Reset(Isolate::GetCurrent(), callbackFunction);
-#else
-    _CallbackFunction = Persistent<Function>::New(callbackFunction);
-#endif
+    NanAssignPersistent(_CallbackFunction, callbackFunction);
 
     String::Utf8Value fileNameStr(calleeObject->Get(
         NanNew<String>("__filename")));
@@ -91,15 +87,7 @@ void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
     Handle<Value> workId = workOptions->Get(NanNew<String>("id"));
     if(workId == NanUndefined() || workId.IsEmpty())
     {
-#if (NODE_MODULE_VERSION > 0x000B)
-        Local<Function> guidFunction = Local<Function>::New(
-            Isolate::GetCurrent(),
-            NTEnvironment::Guid);
-#else
-        Local<Function> guidFunction = Local<Function>::New(
-            NTEnvironment::Guid);
-#endif
-
+        Local<Function> guidFunction = NanNew(NTEnvironment::Guid);
         Handle<Value> guidHandle = guidFunction->Call(
             NanGetCurrentContext()->Global(),
             0,
@@ -107,11 +95,7 @@ void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
         workOptions->Set(NanNew<String>("id"), guidHandle);
     }
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    _WorkOptions.Reset(Isolate::GetCurrent(), workOptions);
-#else
-    _WorkOptions = Persistent<Object>::New(workOptions);
-#endif
+    NanAssignPersistent(_WorkOptions, workOptions);
 }
 
 FunctionWorkItem::~FunctionWorkItem()
@@ -129,11 +113,7 @@ void FunctionWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
 {
     printf("[ FunctionWorkItem::InstanceWorkFunction ]\n");
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(Isolate::GetCurrent());
-#else
-    HandleScope scope;
-#endif
+    NanScope();
     
     TryCatch tryCatch;
 
@@ -207,14 +187,7 @@ void FunctionWorkItem::AsyncCallback(
 
     WorkItem::AsyncCallback(errorHandle, infoHandle, resultHandle);
 
-#if (NODE_MODULE_VERSION > 0x000B)
-        Local<Function> callbackFunction = Local<Function>::New(
-            Isolate::GetCurrent(),
-            _CallbackFunction);
-#else
-        Local<Function> callbackFunction = Local<Function>::New(
-            _CallbackFunction);
-#endif
+    Local<Function> callbackFunction = NanNew(_CallbackFunction);
 
     if(!callbackFunction.IsEmpty() &&
         callbackFunction != NanNull() &&

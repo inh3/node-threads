@@ -70,12 +70,7 @@ void ThreadIsolate::InitializeGlobalContext()
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-        Isolate* isolate = Isolate::GetCurrent();
-        HandleScope scope(isolate);
-#else
-        HandleScope scope;
-#endif
+    NanScope();
     
     // copy global properties
     cloneObject->Set(NanNew<String>("global"), sourceObject->Get(NanNew<String>("global")));
@@ -86,12 +81,7 @@ void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Objec
 
 void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const FileInfo* fileInfo)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-        Isolate* isolate = Isolate::GetCurrent();
-        HandleScope scope(isolate);
-#else
-        HandleScope scope;
-#endif
+    NanScope();
 
     // create the module/exports within context
     Handle<Object> moduleObject = NanNew<Object>();
@@ -108,12 +98,7 @@ void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const File
 
 void ThreadIsolate::UpdateContextFileGlobals(Handle<Object> contextObject, const FileInfo* fileInfo)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-        Isolate* isolate = Isolate::GetCurrent();
-        HandleScope scope(isolate);
-#else
-        HandleScope scope;
-#endif
+    NanScope();
 
     // set the file properites on the context
     contextObject->Set(NanNew<String>("__dirname"), NanNew<String>(fileInfo->folderPath));

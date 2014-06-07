@@ -17,13 +17,7 @@ void Process::Initialize()
 {
     NanScope();
 
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    Local<Object> nodeContext = isolate->GetCurrentContext()->Global();
-#else
     Local<Object> nodeContext = NanGetCurrentContext()->Global();
-#endif
 
     Local<Object> processObject = nodeContext->Get(NanNew<String>("process"))->ToObject();
 
@@ -99,12 +93,7 @@ Handle<Object> Process::GetIsolateProcess()
 
 NAN_METHOD(Process::StdOutWrite)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope handleScope(isolate);
-#else
-    HandleScope handleScope;
-#endif
+    NanScope();
 
     String::Utf8Value outputStr(args[0]->ToString());
     fprintf(stdout, "%s", *outputStr);
@@ -114,12 +103,7 @@ NAN_METHOD(Process::StdOutWrite)
 
 NAN_METHOD(Process::StdErrWrite)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope handleScope(isolate);
-#else
-    HandleScope handleScope;
-#endif
+    NanScope();
 
     String::Utf8Value outputStr(args[0]->ToString());
     fprintf(stderr, "%s", *outputStr);
@@ -129,28 +113,15 @@ NAN_METHOD(Process::StdErrWrite)
 
 NAN_GETTER(Process::GetArch)
 {
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
-
+    NanScope();
     NanReturnValue(NanNew<String>(Process::Arch.c_str()));
 }
 
 NAN_GETTER(Process::GetEnv)
 {
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    Local<Object> currentContext = isolate->GetCurrentContext()->Global();
-#else
-    HandleScope scope;
+    NanScope();
+
     Local<Object> currentContext = NanGetCurrentContext()->Global();
-#endif
 
     // store reference to parse
     Handle<Object> jsonObject = currentContext->Get(NanNew<String>("JSON"))->ToObject();
@@ -163,13 +134,6 @@ NAN_GETTER(Process::GetEnv)
 
 NAN_GETTER(Process::GetPlatform)
 {
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
-
+    NanScope();
     NanReturnValue(NanNew<String>(Process::Platform.c_str()));
 }

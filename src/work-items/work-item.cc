@@ -21,11 +21,7 @@ WorkItem::WorkItem(Handle<Object> threadPoolObject)
     _WorkResult = NULL;
     _Exception = NULL;
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    _ThreadPoolObject.Reset(Isolate::GetCurrent(), threadPoolObject);
-#else
-    _ThreadPoolObject = Persistent<Object>::New(threadPoolObject);
-#endif
+    NanAssignPersistent(_ThreadPoolObject, threadPoolObject);
 
     _AsyncShouldProcess = false;
 }
@@ -55,16 +51,9 @@ void WorkItem::AsyncCallback(
     Handle<Value> infoHandle,
     Handle<Value> resultHandle)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(Isolate::GetCurrent());
-    Local<Object> threadPoolObject = Local<Object>::New(
-            Isolate::GetCurrent(),
-            _ThreadPoolObject);
-#else
-    HandleScope scope;
-     Local<Object> threadPoolObject = Local<Object>::New(
-            _ThreadPoolObject);
-#endif
+    NanScope();
+
+    Local<Object> threadPoolObject = NanNew(_ThreadPoolObject);
 
     Handle<Object> dataObject = NanNew<Object>();
     dataObject->Set(NanNew<String>("error"), errorHandle);
