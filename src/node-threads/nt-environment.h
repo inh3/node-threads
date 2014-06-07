@@ -25,7 +25,7 @@ class NTEnvironment
         static Persistent<Object>       Util;
 
         // custom global references
-        static Persistent<Value>        NumCPUs;
+        static Persistent<Uint32>       NumCPUs;
         static Persistent<Function>     CalleeByStackTrace;
         static Persistent<Function>     Guid;
 

@@ -6,7 +6,7 @@
 Handle<Object> ErrorHandling::HandleException(TryCatch* tryCatch)
 {
     // exception object to return
-    Handle<Object> exceptionObject = Object::New();
+    Handle<Object> exceptionObject = NanNew<Object>();
 
     // get the exception message
     Handle<Message> exceptionMessage = tryCatch->Message();
@@ -14,25 +14,25 @@ Handle<Object> ErrorHandling::HandleException(TryCatch* tryCatch)
     // the exception message was not valid
     if (exceptionMessage.IsEmpty())
     {
-        exceptionObject->Set(String::NewSymbol("message"), tryCatch->Exception());
+        exceptionObject->Set(NanNew<String>("message"), tryCatch->Exception());
     }
     else
     {
-        exceptionObject->Set(String::NewSymbol("message"), tryCatch->Message()->Get());
-        exceptionObject->Set(String::NewSymbol("resourceName"), exceptionMessage->GetScriptResourceName());
-        exceptionObject->Set(String::NewSymbol("lineNum"), Number::New(exceptionMessage->GetLineNumber()));
-        exceptionObject->Set(String::NewSymbol("sourceLine"), exceptionMessage->GetSourceLine());
-        exceptionObject->Set(String::NewSymbol("scriptData"), exceptionMessage->GetScriptData());
+        exceptionObject->Set(NanNew<String>("message"), tryCatch->Message()->Get());
+        exceptionObject->Set(NanNew<String>("resourceName"), exceptionMessage->GetScriptResourceName());
+        exceptionObject->Set(NanNew<String>("lineNum"), NanNew<Number>(exceptionMessage->GetLineNumber()));
+        exceptionObject->Set(NanNew<String>("sourceLine"), exceptionMessage->GetSourceLine());
+        exceptionObject->Set(NanNew<String>("scriptData"), exceptionMessage->GetScriptData());
         if(!tryCatch->StackTrace().IsEmpty())
         {
-            exceptionObject->Set(String::NewSymbol("stackTrace"), tryCatch->StackTrace());
+            exceptionObject->Set(NanNew<String>("stackTrace"), tryCatch->StackTrace());
         }
         else
         {
-            exceptionObject->Set(String::NewSymbol("stackTrace"), Null());
+            exceptionObject->Set(NanNew<String>("stackTrace"), NanNull());
         }
     }
 
-    exceptionObject->SetHiddenValue(String::New("exception"), Boolean::New(true));
+    exceptionObject->SetHiddenValue(NanNew<String>("exception"), NanTrue());
     return exceptionObject;
 }

@@ -34,6 +34,8 @@ FunctionWorkItem::FunctionWorkItem(
     : WorkItem(nodeThreads)
 {
     printf("FunctionWorkItem::FunctionWorkItem\n");
+
+    _AsyncShouldProcess = true;
     
     size_t fStrLen = strlen(functionString);
 
@@ -58,9 +60,9 @@ FunctionWorkItem::FunctionWorkItem(
 #endif
 
     String::Utf8Value fileNameStr(calleeObject->Get(
-        String::NewSymbol("__filename")));
+        NanNew<String>("__filename")));
     String::Utf8Value dirNameStr(calleeObject->Get(
-        String::NewSymbol("__dirname")));
+        NanNew<String>("__dirname")));
 
     _FileName.assign(*fileNameStr);
     _DirName.assign(*dirNameStr);
@@ -74,19 +76,19 @@ void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 
     if(workOptions.IsEmpty())
     {
-        workOptions = Object::New();
+        workOptions = NanNew<Object>();
     }
 
     // set context to default node context if not specified
-    Handle<Value> contextHandle = workOptions->Get(String::NewSymbol("context"));
-    if(contextHandle == Undefined() || contextHandle.IsEmpty())
+    Handle<Value> contextHandle = workOptions->Get(NanNew<String>("context"));
+    if(contextHandle == NanUndefined() || contextHandle.IsEmpty())
     {
-        Handle<Object> currentContext = Context::GetCurrent()->Global();
-        workOptions->Set(String::NewSymbol("context"), currentContext);
+        Handle<Object> currentContext = NanGetCurrentContext()->Global();
+        workOptions->Set(NanNew<String>("context"), currentContext);
     }
 
     // set work id to guid if not specified
-    Handle<Value> workId = workOptions->Get(String::NewSymbol("id"));
+    Handle<Value> workId = workOptions->Get(NanNew<String>("id"));
     if(workId == Undefined() || workId.IsEmpty())
     {
 #if (NODE_MODULE_VERSION > 0x000B)
@@ -102,7 +104,7 @@ void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
             Context::GetCurrent()->Global(),
             0,
             NULL);
-        workOptions->Set(String::NewSymbol("id"), guidHandle);
+        workOptions->Set(NanNew<String>("id"), guidHandle);
     }
 
 #if (NODE_MODULE_VERSION > 0x000B)
@@ -142,16 +144,16 @@ void FunctionWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
 
     // set __filename and __dirname
     contextObject->Set(
-        String::NewSymbol("__filename"),
-        String::New(_FileName.c_str()));
+        NanNew<String>("__filename"),
+        NanNew<String>(_FileName.c_str()));
 
     contextObject->Set(
-        String::NewSymbol("__dirname"),
-        String::New(_DirName.c_str()));
+        NanNew<String>("__dirname"),
+        NanNew<String>(_DirName.c_str()));
 
-    //String::Utf8Value scriptSource(String::New(_FunctionString));
+    //String::Utf8Value scriptSource(NanNew<String>(_FunctionString));
     //printf("%s\n", *scriptSource);
-    compiledScript = Script::Compile(String::New(_FunctionString));
+    compiledScript = Script::Compile(NanNew<String>(_FunctionString));
 
     // check for exception on compile
     if(compiledScript.IsEmpty() || tryCatch.HasCaught())
@@ -194,7 +196,7 @@ void FunctionWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
 
 void FunctionWorkItem::InstanceWorkCallback()
 {
-    _AsyncShouldProcess = true;
+    //_AsyncShouldProcess = true;
 }
 
 void FunctionWorkItem::AsyncCallback(
@@ -236,7 +238,7 @@ void FunctionWorkItem::AsyncCallback(
 
             // make callback on node thread
             callbackFunction->Call(
-                infoHandle.As<Object>()->Get(String::NewSymbol("context")).As<Object>(),
+                infoHandle.As<Object>()->Get(NanNew<String>("context")).As<Object>(),
                 argc,
                 argv);
 

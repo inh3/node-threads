@@ -47,26 +47,29 @@ Handle<Value> Utilities::CompileScriptSource(
     TryCatch tryCatch;
 
     Handle<Value> scriptResult;
-    Handle<Script> compiledScript;
+    Handle<UnboundScript> unboundScript;
 
     // create compiled script
     if(scriptResourceName != NULL)
     {
-        compiledScript = Script::New(scriptSource, String::New(scriptResourceName));
+        ScriptOrigin scriptOrigin(NanNew<String>(scriptResourceName));
+        unboundScript = NanNew<NanUnboundScript>(
+            NanNew<String>(scriptSource),
+            scriptOrigin);
     }
     else
     {
-        compiledScript = Script::New(scriptSource);
+        unboundScript = NanNew<NanUnboundScript>(NanNew<String>(scriptSource));
     }
 
     // check for exception on compile
-    if(compiledScript.IsEmpty() || tryCatch.HasCaught())
+    if(unboundScript.IsEmpty() || tryCatch.HasCaught())
     {
         return ErrorHandling::HandleException(&tryCatch);
     }
     else
     {
-        scriptResult = compiledScript->Run();
+        scriptResult = NanRunScript(unboundScript);
 
         // check that running script didn't throw errors
         if(scriptResult.IsEmpty() || tryCatch.HasCaught())

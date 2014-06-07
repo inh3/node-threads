@@ -24,7 +24,7 @@ Persistent<Object>      NTEnvironment::Util;
 // custom global references
 Persistent<Function>    NTEnvironment::CalleeByStackTrace;
 Persistent<Function>    NTEnvironment::Guid;
-Persistent<Value>       NTEnvironment::NumCPUs;
+Persistent<Uint32>      NTEnvironment::NumCPUs;
 
 string                  NTEnvironment::ModuleDir;
 string                  NTEnvironment::ProcessDir;
@@ -60,13 +60,11 @@ void NTEnvironment::GuidInitialize(const char* moduleDir)
     guidPath.assign(moduleDir);
     guidPath.append("/src/js/guid.js");
     FileInfo guidFile(guidPath.c_str());
-    Handle<Script> guidScript = Script::New(
-        String::New(guidFile.FileContents()),
-        String::New("guid"));
-    Handle<Value> guidFunction = guidScript->Run();
+    Handle<NanUnboundScript> guidScript = NanNew<NanUnboundScript>(
+        NanNew<String>(guidFile.FileContents()));
+    Handle<Value> guidFunction = NanRunScript(guidScript);
 
     NanAssignPersistent(
-        Function,
         Guid,
         guidFunction.As<Function>());
 }
@@ -79,60 +77,53 @@ void NTEnvironment::StackTraceInitialize(const char* moduleDir)
     stackPath.assign(moduleDir);
     stackPath.append("/src/js/stack.js");
     FileInfo stackFile(stackPath.c_str());
-    Handle<Script> stackScript = Script::New(
-        String::New(stackFile.FileContents()),
-        String::New("stack"));
-    Handle<Value> stackTraceFunction = stackScript->Run();
+    Handle<NanUnboundScript> stackScript = NanNew<NanUnboundScript>(
+        NanNew<String>(stackFile.FileContents()));
+    Handle<Value> stackTraceFunction = NanRunScript(stackScript);
 
     NanAssignPersistent(
-        Function,
         CalleeByStackTrace,
         stackTraceFunction.As<Function>());
 }
 
 void NTEnvironment::NodeInitialize()
 {
-    Handle<Object> envModule = NanPersistentToLocal(
-        NTEnvironment::Module).As<Object>();
+    Handle<Object> envModule = NanNew(NTEnvironment::Module);
 
     // store reference to event emitter
-    Local<Function> requireFunction = NanNewLocal<Function>(
-        envModule->Get(String::NewSymbol("require")).As<Function>());
-    Local<Value> args[] = { String::New("events") };
+    Local<Function> requireFunction = NanNew(
+        envModule->Get(NanNew<String>("require")).As<Function>());
+    Local<Value> args[] = { NanNew<String>("events") };
     Local<Object> eventsModule = requireFunction->Call(
         envModule, 1, args)->ToObject();
     NanAssignPersistent(
-        Function,
         NTEnvironment::EventEmitter, 
-        eventsModule->Get(String::NewSymbol("EventEmitter")).As<Function>());
+        eventsModule->Get(NanNew<String>("EventEmitter")).As<Function>());
 
     // store reference to path
-    args[0] = String::New("path");
+    args[0] = NanNew<String>("path");
     Local<Object> pathModule = requireFunction->Call(
         envModule, 1, args)->ToObject();
     NanAssignPersistent(
-        Object,
         NTEnvironment::Path, 
         pathModule);
 
     // store reference to util
-    args[0] = String::New("util");
+    args[0] = NanNew<String>("util");
     Local<Object> utilModule = requireFunction->Call(
         envModule, 1, args)->ToObject();
     NanAssignPersistent(
-        Object,
         NTEnvironment::Util, 
         utilModule);
 
     // store number of cpu cores
-    args[0] = String::New("os");
+    args[0] = NanNew<String>("os");
     Local<Object> osModule = requireFunction->Call(
         envModule, 1, args)->ToObject();
-    Local<Function> cpuFunction = osModule->Get(String::NewSymbol("cpus")).As<Function>();
+    Local<Function> cpuFunction = osModule->Get(NanNew<String>("cpus")).As<Function>();
     Local<Array> cpuArray = cpuFunction->Call(
         envModule, 0, NULL).As<Array>();
     NanAssignPersistent(
-        Value,
         NTEnvironment::NumCPUs,
-        Uint32::NewFromUnsigned((cpuArray->Length() > 2 ? cpuArray->Length() - 1 : 2)));
+        NanNew<Uint32>((cpuArray->Length() > 2 ? cpuArray->Length() - 1 : 2)));
 }

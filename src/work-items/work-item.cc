@@ -69,21 +69,21 @@ void WorkItem::AsyncCallback(
             _ThreadPoolObject);
 #endif
 
-    Handle<Object> dataObject = Object::New();
-    dataObject->Set(String::NewSymbol("error"), errorHandle);
-    dataObject->Set(String::NewSymbol("info"), infoHandle);
-    dataObject->Set(String::NewSymbol("result"), resultHandle);
+    Handle<Object> dataObject = NanNew<Object>();
+    dataObject->Set(NanNew<String>("error"), errorHandle);
+    dataObject->Set(NanNew<String>("info"), infoHandle);
+    dataObject->Set(NanNew<String>("result"), resultHandle);
 
-    Handle<Value> eventHandle = Object::New();
-    eventHandle.As<Object>()->Set(String::NewSymbol("data"), dataObject);
+    Handle<Value> eventHandle = NanNew<Object>();
+    eventHandle.As<Object>()->Set(NanNew<String>("data"), dataObject);
 
     Handle<Function> emitFunction = threadPoolObject->Get(
-        String::NewSymbol("emit"))
+        NanNew<String>("emit"))
     .As<Function>();
 
      // emit "message" on main thread
     Handle<Value> args[] = { 
-        String::New("message"),
+        NanNew<String>("message"),
         eventHandle
     };
     emitFunction->Call(threadPoolObject, 2, args);

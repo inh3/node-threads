@@ -25,23 +25,23 @@ void Process::Initialize()
     Local<Object> nodeContext = Context::GetCurrent()->Global();
 #endif
 
-    Local<Object> processObject = nodeContext->Get(String::NewSymbol("process"))->ToObject();
+    Local<Object> processObject = nodeContext->Get(NanNew<String>("process"))->ToObject();
 
     // store 'arch' and 'platform'
     String::Utf8Value processArch(
-        processObject->Get(String::NewSymbol("arch"))->ToString());
+        processObject->Get(NanNew<String>("arch"))->ToString());
     String::Utf8Value processPlatform(
-        processObject->Get(String::NewSymbol("platform"))->ToString());
+        processObject->Get(NanNew<String>("platform"))->ToString());
 
     Process::Arch.assign(*processArch);
     Process::Platform.assign(*processPlatform);
 
     // store reference to stringify
-    Handle<Object> jsonObject = nodeContext->Get(v8::String::New("JSON"))->ToObject();
-    Handle<Function> stringifyFunc = jsonObject->Get(v8::String::New("stringify")).As<Function>();
+    Handle<Object> jsonObject = nodeContext->Get(v8::NanNew<String>("JSON"))->ToObject();
+    Handle<Function> stringifyFunc = jsonObject->Get(v8::NanNew<String>("stringify")).As<Function>();
 
     // store stringified version of 'env' object
-    Handle<Value> envValue = processObject->Get(String::NewSymbol("env"));
+    Handle<Value> envValue = processObject->Get(NanNew<String>("env"));
     Handle<Value> stringifyResult = stringifyFunc->Call(jsonObject, 1, &(envValue));
 
     String::Utf8Value processEnv(stringifyResult->ToString());
@@ -50,26 +50,26 @@ void Process::Initialize()
 
 Handle<Object> Process::GetIsolateProcess()
 {
-    Handle<Object> processObject = Object::New();
+    Handle<Object> processObject = NanNew<Object>();
 
     // set stdout.write
-    Local<FunctionTemplate> stdOutWrite = FunctionTemplate::New(Process::StdOutWrite);
+    Local<FunctionTemplate> stdOutWrite = NanNew<FunctionTemplate>(Process::StdOutWrite);
     Local<Function> stdOutWriteFunc = stdOutWrite->GetFunction();
-    stdOutWriteFunc->SetName(String::NewSymbol("write"));
-    Handle<Object> stdOutObject = Object::New();
-    stdOutObject->Set(String::NewSymbol("write"), stdOutWriteFunc);
-    processObject->Set(String::NewSymbol("stdout"), stdOutObject);
+    stdOutWriteFunc->SetName(NanNew<String>("write"));
+    Handle<Object> stdOutObject = NanNew<Object>();
+    stdOutObject->Set(NanNew<String>("write"), stdOutWriteFunc);
+    processObject->Set(NanNew<String>("stdout"), stdOutObject);
 
     // set stderr.write
-    Local<FunctionTemplate> stdErrWrite = FunctionTemplate::New(Process::StdErrWrite);
+    Local<FunctionTemplate> stdErrWrite = NanNew<FunctionTemplate>(Process::StdErrWrite);
     Local<Function> stdErrWriteFunc = stdErrWrite->GetFunction();
-    stdErrWriteFunc->SetName(String::NewSymbol("write"));
-    Handle<Object> stdErrObject = Object::New();
-    stdErrObject->Set(String::NewSymbol("write"), stdErrWriteFunc);
-    processObject->Set(String::NewSymbol("stderr"), stdErrObject);
+    stdErrWriteFunc->SetName(NanNew<String>("write"));
+    Handle<Object> stdErrObject = NanNew<Object>();
+    stdErrObject->Set(NanNew<String>("write"), stdErrWriteFunc);
+    processObject->Set(NanNew<String>("stderr"), stdErrObject);
 
     processObject->SetAccessor(
-        String::NewSymbol("env"),
+        NanNew<String>("env"),
         Process::GetEnv,
         0,
         Handle<Value>(),
@@ -77,7 +77,7 @@ Handle<Object> Process::GetIsolateProcess()
         v8::ReadOnly);
 
     processObject->SetAccessor(
-        String::NewSymbol("arch"),
+        NanNew<String>("arch"),
         Process::GetArch,
         0,
         Handle<Value>(),
@@ -85,7 +85,7 @@ Handle<Object> Process::GetIsolateProcess()
         v8::ReadOnly);
 
     processObject->SetAccessor(
-        String::NewSymbol("platform"),
+        NanNew<String>("platform"),
         Process::GetPlatform,
         0,
         Handle<Value>(),
@@ -137,7 +137,7 @@ NAN_GETTER(Process::GetArch)
     HandleScope scope;
 #endif
 
-    NanReturnValue(String::New(Process::Arch.c_str()));
+    NanReturnValue(NanNew<String>(Process::Arch.c_str()));
 }
 
 NAN_GETTER(Process::GetEnv)
@@ -153,10 +153,10 @@ NAN_GETTER(Process::GetEnv)
 #endif
 
     // store reference to parse
-    Handle<Object> jsonObject = currentContext->Get(v8::String::New("JSON"))->ToObject();
-    Handle<Function> parseFunc = jsonObject->Get(v8::String::New("parse")).As<Function>();
+    Handle<Object> jsonObject = currentContext->Get(v8::NanNew<String>("JSON"))->ToObject();
+    Handle<Function> parseFunc = jsonObject->Get(v8::NanNew<String>("parse")).As<Function>();
 
-    Local<Value> jsonString = String::New(Process::Env.c_str());
+    Local<Value> jsonString = NanNew<String>(Process::Env.c_str());
 
     NanReturnValue(parseFunc->Call(jsonObject, 1, &jsonString));
 }
@@ -171,5 +171,5 @@ NAN_GETTER(Process::GetPlatform)
     HandleScope scope;
 #endif
 
-    NanReturnValue(String::New(Process::Platform.c_str()));
+    NanReturnValue(NanNew<String>(Process::Platform.c_str()));
 }

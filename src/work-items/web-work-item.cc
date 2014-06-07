@@ -22,7 +22,7 @@ WebWorkItem::WebWorkItem(
     _EventObject = eventObject;
     _WorkerScript = workerScript;
     
-    Handle<Object> workOptions = Object::New();
+    Handle<Object> workOptions = NanNew<Object>();
 #if (NODE_MODULE_VERSION > 0x000B)
     _WorkOptions.Reset(Isolate::GetCurrent(), workOptions);
 #else
@@ -87,7 +87,7 @@ void WebWorkItem::ProcessWorkerScript(Handle<Object> contextObject)
     CreateWorkerContext();
     StoreHiddenReference();
 
-    Handle<Script> workerScript = Script::New(String::New(_WorkerScript));
+    Handle<Script> workerScript = Script::New(NanNew<String>(_WorkerScript));
         workerScript->Run();
 
     //Utilities::PrintObjectProperties(Context::GetCurrent()->Global());
@@ -95,10 +95,10 @@ void WebWorkItem::ProcessWorkerScript(Handle<Object> contextObject)
 #if (NODE_MODULE_VERSION > 0x000B)
     webWorker->_MessageFunction.Reset(
         Isolate::GetCurrent(),
-        contextObject->Get(String::NewSymbol("onmessage")).As<Function>());
+        contextObject->Get(NanNew<String>("onmessage")).As<Function>());
 #else
     webWorker->_MessageFunction = Persistent<Function>::New(
-        contextObject->Get(String::NewSymbol("onmessage")).As<Function>());
+        contextObject->Get(NanNew<String>("onmessage")).As<Function>());
 #endif
 }
 
@@ -155,20 +155,20 @@ void WebWorkItem::CreateWorkerContext()
     HandleScope scope;
 #endif
 
-    Handle<Function> postMessage = FunctionTemplate::New(
+    Handle<Function> postMessage = NanNew<FunctionTemplate>(
         WebWorkItem::PostMessage)->GetFunction();
-    Handle<Function> addEventListener = FunctionTemplate::New(
+    Handle<Function> addEventListener = NanNew<FunctionTemplate>(
         WebWorkItem::AddEventListener)->GetFunction();
-    Handle<Function> close = FunctionTemplate::New(
+    Handle<Function> close = NanNew<FunctionTemplate>(
         WebWorkItem::Close)->GetFunction();
 
     Handle<Object> contextObject = Context::GetCurrent()->Global();
     
-    contextObject->Set(String::NewSymbol("self"), contextObject);
-    contextObject->Set(String::NewSymbol("onmessage"), Undefined());
-    contextObject->Set(String::NewSymbol("postMessage"), postMessage);
-    contextObject->Set(String::NewSymbol("addEventListener"), addEventListener);
-    contextObject->Set(String::NewSymbol("close"), close);
+    contextObject->Set(NanNew<String>("self"), contextObject);
+    contextObject->Set(NanNew<String>("onmessage"), Undefined());
+    contextObject->Set(NanNew<String>("postMessage"), postMessage);
+    contextObject->Set(NanNew<String>("addEventListener"), addEventListener);
+    contextObject->Set(NanNew<String>("close"), close);
 }
 
 void WebWorkItem::StoreHiddenReference()
@@ -186,11 +186,11 @@ void WebWorkItem::StoreHiddenReference()
     Handle<ObjectTemplate> objectTemplate = ObjectTemplate::New();
     objectTemplate->SetInternalFieldCount(1);
     Local<Object> webWorkItemObject = objectTemplate->NewInstance();
-    webWorkItemObject->Set(String::NewSymbol("Test"), Number::New(10));
+    webWorkItemObject->Set(NanNew<String>("Test"), Number::New(10));
     NanSetInternalFieldPointer(webWorkItemObject, 0, (void*)this);
 
     // store the reference object as a hidden field
-    contextObject->SetHiddenValue(String::New("WebWorkItem"),
+    contextObject->SetHiddenValue(NanNew<String>("WebWorkItem"),
         webWorkItemObject);
 }
 
@@ -236,7 +236,7 @@ NAN_METHOD(WebWorkItem::PostMessage)
 
     Handle<Object> contextObject = Context::GetCurrent()->Global();
     Handle<Object> workItemObject = contextObject->GetHiddenValue(
-        String::NewSymbol("WebWorkItem")).As<Object>();
+        NanNew<String>("WebWorkItem")).As<Object>();
     WebWorkItem* webWorkItem = (WebWorkItem*)NanGetInternalFieldPointer(workItemObject, 0);
     webWorkItem->_AsyncShouldProcess = true;
 

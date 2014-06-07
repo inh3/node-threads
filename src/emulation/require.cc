@@ -19,22 +19,22 @@ void Require::InitializePerIsolate()
     modulePath.assign(NTEnvironment::ModuleDir);
     modulePath.append("/src/js/util.js");
     FileInfo utilFile(modulePath.c_str());
-    LoadNativeModule(String::New("util"), &utilFile);
+    LoadNativeModule(NanNew<String>("util"), &utilFile);
 
     modulePath.assign(NTEnvironment::ModuleDir);
     modulePath.append("/src/js/path.js");
     FileInfo pathFile(modulePath.c_str());
-    LoadNativeModule(String::New("path"), &pathFile);
+    LoadNativeModule(NanNew<String>("path"), &pathFile);
 
     modulePath.assign(NTEnvironment::ModuleDir);
     modulePath.append("/src/js/assert.js");
     FileInfo assertFile(modulePath.c_str());
-    LoadNativeModule(String::New("assert"), &assertFile);
+    LoadNativeModule(NanNew<String>("assert"), &assertFile);
 
     modulePath.assign(NTEnvironment::ModuleDir);
     modulePath.append("/src/js/console.js");
     FileInfo consoleFile(modulePath.c_str());
-    LoadNativeModule(String::New("console"), &consoleFile);
+    LoadNativeModule(NanNew<String>("console"), &consoleFile);
 }
 
 void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileInfo)
@@ -73,10 +73,10 @@ void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileIn
 
     // run the script to get the module object
     Handle<Script> moduleScript = Script::New(
-        String::New(nativeFileInfo->FileContents()),
+        NanNew<String>(nativeFileInfo->FileContents()),
         moduleName);
     moduleScript->Run();
-    Handle<Object> moduleObject = contextObject->Get(String::New("module"))->ToObject();
+    Handle<Object> moduleObject = contextObject->Get(NanNew<String>("module"))->ToObject();
 
     // create object template in order to use object wrap
     Handle<ObjectTemplate> objectTemplate = ObjectTemplate::New();
@@ -86,7 +86,7 @@ void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileIn
     // copy the module object to module instance
     Utilities::CopyObject(
         moduleInstance,
-        moduleObject->Get(String::New("exports"))->ToObject());
+        moduleObject->Get(NanNew<String>("exports"))->ToObject());
 
     // wrap the object so it can be persisted
     PersistentWrap* moduleWrap = new PersistentWrap();

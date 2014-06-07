@@ -158,9 +158,9 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
             Handle<Value> workResultHandle = JsonUtility::Parse(workItem->_WorkResult);
 
             workOptions->Set(
-                String::NewSymbol("thread"), Number::New(workItem->_ThreadId));
+                NanNew<String>("thread"), Number::New(workItem->_ThreadId));
             workOptions->Set(
-                String::NewSymbol("threadpool"), String::New(workItem->_ThreadPoolKey.c_str()));
+                NanNew<String>("threadpool"), NanNew<String>(workItem->_ThreadPoolKey.c_str()));
 
             workItem->AsyncCallback(
                 (exceptionHandle == Undefined() ? (Handle<Value>)Null() : exceptionHandle),

@@ -24,8 +24,8 @@ char* JsonUtility::Stringify(Handle<Value> valueHandle)
 
     // get reference to JSON object
     Handle<Object> contextObject = Context::GetCurrent()->Global();
-    Handle<Object> jsonObject = contextObject->Get(v8::String::New("JSON"))->ToObject();
-    Handle<Function> stringifyFunc = jsonObject->Get(v8::String::New("stringify")).As<Function>();
+    Handle<Object> jsonObject = contextObject->Get(v8::NanNew<String>("JSON"))->ToObject();
+    Handle<Function> stringifyFunc = jsonObject->Get(v8::NanNew<String>("stringify")).As<Function>();
 
     // execute stringify
     Handle<Value> stringifyResult = stringifyFunc->Call(jsonObject, 1, &(valueHandle));
@@ -65,11 +65,11 @@ Handle<Value> JsonUtility::Parse(char* objectString)
 
     // get reference to JSON object
     Handle<Object> contextObject = Context::GetCurrent()->Global();
-    Handle<Object> jsonObject = contextObject->Get(v8::String::New("JSON"))->ToObject();
-    Handle<Function> parseFunc = jsonObject->Get(v8::String::New("parse")).As<Function>();
+    Handle<Object> jsonObject = contextObject->Get(v8::NanNew<String>("JSON"))->ToObject();
+    Handle<Function> parseFunc = jsonObject->Get(v8::NanNew<String>("parse")).As<Function>();
 
     // execute parse
-    Handle<Value> jsonString = String::New(objectString);
+    Handle<Value> jsonString = NanNew<String>(objectString);
     Local<Value> valueHandle = parseFunc->Call(jsonObject, 1, &jsonString);
 
     return handleScope.Close(valueHandle);

@@ -125,12 +125,12 @@ NAN_METHOD(NodeThreads::New)
     if (args.IsConstructCall())
     {
         // add instance function properties
-        args.This()->Set(String::NewSymbol("executeFunction"),
-            FunctionTemplate::New(NodeThreads::ExecuteFunction)->GetFunction());
+        args.This()->Set(NanNew<String>("executeFunction"),
+            NanNew<FunctionTemplate>(NodeThreads::ExecuteFunction)->GetFunction());
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
-        Local<Function> eventEmitter = NanPersistentToLocal(NTEnvironment::EventEmitter);
+        Local<Function> eventEmitter = NanNew(NTEnvironment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
         // get the unique name param of the node thread instance
@@ -138,7 +138,7 @@ NAN_METHOD(NodeThreads::New)
         string threadPoolKey(*threadPoolName);
 
         // get number of threads
-        Local<Value> numCpus = NanPersistentToLocal(NTEnvironment::NumCPUs);
+        Local<Value> numCpus = NanNew(NTEnvironment::NumCPUs);
         uint32_t numThreads = numCpus->Uint32Value();
         if(args.Length() == 2)
         {
@@ -158,14 +158,14 @@ NAN_GETTER(NodeThreads::GetThreadPoolKey)
 {
     NanScope();
     NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
-    NanReturnValue(String::New(nodeThread->_ThreadPoolKey.c_str()));
+    NanReturnValue(NanNew<String>(nodeThread->_ThreadPoolKey.c_str()));
 }
 
 NAN_GETTER(NodeThreads::GetNumThreads)
 {
     NanScope();
     NodeThreads* nodeThread = ObjectWrap::Unwrap<NodeThreads>(args.This());
-    NanReturnValue(Uint32::NewFromUnsigned(nodeThread->_NumThreads));
+    NanReturnValue(NanNew<Uint32>(nodeThread->_NumThreads));
 }
 
 NAN_METHOD(NodeThreads::ExecuteFunction)
@@ -197,13 +197,13 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         }
         else
         {
-            workOptions = Object::New();
+            workOptions = NanNew<Object>();
         }
     }
     
     if(funcStrHandle.IsEmpty())
     {
-        ThrowException(Exception::TypeError(String::New("Invalid parameter(s) passed to 'executeFunction(...)'\n")));
+        ThrowException(Exception::TypeError(NanNew<String>("Invalid parameter(s) passed to 'executeFunction(...)'\n")));
         NanReturnUndefined();
     }
     else
@@ -220,7 +220,7 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
             args.This());
     }
 
-    NanReturnValue(workOptions->Get(String::NewSymbol("id")));
+    NanReturnValue(workOptions->Get(NanNew<String>("id")));
 }
 
 // node helpers ---------------------------------------------------------------

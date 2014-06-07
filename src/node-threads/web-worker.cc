@@ -22,33 +22,31 @@ WebWorker::~WebWorker()
 {
     printf("WebWorker::~WebWorker\n");
 
-    _OnMessage.Dispose();
-    _OnMessage.Clear();
+    NanDisposePersistent(_OnMessage);
 }
 
 void WebWorker::Init()
 {
     // prepare the constructor function template
-    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(WebWorker::New);
+    Local<FunctionTemplate> constructorTemplate = NanNew<FunctionTemplate>(WebWorker::New);
     constructorTemplate->InstanceTemplate()->SetAccessor(
-        String::NewSymbol("onmessage"),
+        NanNew<String>("onmessage"),
         WebWorker::OnMessageGet,
         WebWorker::OnMessageSet);
-    constructorTemplate->SetClassName(String::NewSymbol("Worker"));
+    constructorTemplate->SetClassName(NanNew<String>("Worker"));
     constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     // inherit from event emitter
-    Local<Function> inheritsFunction = NanPersistentToLocal(
-        NTEnvironment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
+    Local<Function> inheritsFunction = NanNew(
+        NTEnvironment::Util)->Get(NanNew<String>("inherits")).As<Function>();
 
     Local<Value> inheritArgs[] = { 
         constructorTemplate->GetFunction(),
-        NanPersistentToLocal(NTEnvironment::EventEmitter)
+        NanNew(NTEnvironment::EventEmitter)
     };
-    inheritsFunction->Call(NanPersistentToLocal(NTEnvironment::Module), 2, inheritArgs);
+    inheritsFunction->Call(NanNew(NTEnvironment::Module), 2, inheritArgs);
     
     NanAssignPersistent(
-        Function,
         WebWorker::Constructor,
         constructorTemplate->GetFunction());
 }
@@ -88,22 +86,22 @@ NAN_METHOD(WebWorker::New)
     if (args.IsConstructCall())
     {
         // add instance function properties
-        args.This()->Set(String::NewSymbol("postMessage"),
-            FunctionTemplate::New(WebWorker::PostMessage)->GetFunction());
-        args.This()->Set(String::NewSymbol("addEventListener"),
-            FunctionTemplate::New(WebWorker::AddEventListener)->GetFunction());
-        args.This()->Set(String::NewSymbol("terminate"),
-            FunctionTemplate::New(WebWorker::Terminate)->GetFunction());
+        args.This()->Set(NanNew<String>("postMessage"),
+            NanNew<FunctionTemplate>(WebWorker::PostMessage)->GetFunction());
+        args.This()->Set(NanNew<String>("addEventListener"),
+            NanNew<FunctionTemplate>(WebWorker::AddEventListener)->GetFunction());
+        args.This()->Set(NanNew<String>("terminate"),
+            NanNew<FunctionTemplate>(WebWorker::Terminate)->GetFunction());
 
         // inherit from EventEmitter
         // https://groups.google.com/d/msg/v8-users/6kSAbnUb-rQ/QPMMfqssx5AJ
-        Local<Function> eventEmitter = NanPersistentToLocal(NTEnvironment::EventEmitter);
+        Local<Function> eventEmitter = NanNew(NTEnvironment::EventEmitter);
         eventEmitter->Call(args.This(), 0, NULL);
 
         // get reference to callee object directory
         Handle<Object> calleeObject = NodeThreads::GetCalleeInfo().As<Object>();
         String::Utf8Value dirNameStr(
-            calleeObject->Get(String::NewSymbol("__dirname")));
+            calleeObject->Get(NanNew<String>("__dirname")));
 
         // determine if this is being created from a file or a function
         bool isFunction = false;
@@ -136,7 +134,7 @@ NAN_GETTER(WebWorker::OnMessageGet)
 {
     NanScope();
     WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
-    Local<Function> onMessage = NanPersistentToLocal(webWorker->_OnMessage);
+    Local<Function> onMessage = NanNew(webWorker->_OnMessage);
     NanReturnValue(onMessage);
 }
 
@@ -149,14 +147,14 @@ NAN_SETTER(WebWorker::OnMessageSet)
 
     // remove existing listener
     Handle<Function> removeAllFunc = args.This()->Get(
-            String::NewSymbol("removeAllListeners")).As<Function>();
-    Handle<Value> removeAllArgs[] = { String::New("message") };
+            NanNew<String>("removeAllListeners")).As<Function>();
+    Handle<Value> removeAllArgs[] = { NanNew<String>("message") };
     removeAllFunc->Call(args.This(), 1, removeAllArgs);
 
     // add then new listener
     Handle<Function> onFunction = args.This()->Get(
-            String::NewSymbol("on")).As<Function>();
-    Handle<Value> onArgs[] = { String::New("message"), value };
+            NanNew<String>("on")).As<Function>();
+    Handle<Value> onArgs[] = { NanNew<String>("message"), value };
     onFunction->Call(args.This(), 2, onArgs);
 }
 
@@ -166,7 +164,7 @@ NAN_METHOD(WebWorker::PostMessage)
 
     WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
 
-    Handle<Object> eventObject = Object::New();
+    Handle<Object> eventObject = NanNew<Object>();
 
     if(args[0]->IsArrayBufferView() || args[0]->IsArrayBuffer())
     {
@@ -187,7 +185,7 @@ NAN_METHOD(WebWorker::PostMessage)
     else
     {
         eventObject->Set(
-            String::NewSymbol("data"),
+            NanNew<String>("data"),
             NanNewLocal<Object>(args[0].As<Object>()));
     }
 
@@ -208,7 +206,7 @@ NAN_METHOD(WebWorker::AddEventListener)
     if((args.Length() == 2) && args[0]->IsString() && args[1]->IsFunction())
     {
         Handle<Function> onFunction = args.This()->Get(
-            String::NewSymbol("on")).As<Function>();
+            NanNew<String>("on")).As<Function>();
 
         Handle<Value> onArgs[] = { args[0], args[1] };
         onFunction->Call(args.This(), 2, onArgs);

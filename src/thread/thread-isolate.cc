@@ -43,22 +43,22 @@ void ThreadIsolate::InitializeGlobalContext()
 #endif
 
     // global namespace object
-    globalContext->Set(String::NewSymbol("global"), Object::New());
+    globalContext->Set(NanNew<String>("global"), NanNew<Object>());
 
     // process ----------------------------------------------------------------
 
     // attach object to context
-    globalContext->Set(String::NewSymbol("process"), Process::GetIsolateProcess());
+    globalContext->Set(NanNew<String>("process"), Process::GetIsolateProcess());
 
     // require(...) -----------------------------------------------------------
 
     // get handle to require function
-    Local<FunctionTemplate> functionTemplate = FunctionTemplate::New(Require::RequireMethod);
+    Local<FunctionTemplate> functionTemplate = NanNew<FunctionTemplate>(Require::RequireMethod);
     Local<Function> requireFunction = functionTemplate->GetFunction();
-    requireFunction->SetName(String::NewSymbol("require"));
+    requireFunction->SetName(NanNew<String>("require"));
 
     // attach function to context
-    globalContext->Set(String::NewSymbol("require"), requireFunction);
+    globalContext->Set(NanNew<String>("require"), requireFunction);
 
     // initialize require
     Require::InitializePerIsolate();
@@ -76,7 +76,7 @@ void ThreadIsolate::InitializeGlobalContext()
 #endif
 
     // attach object to context
-    globalContext->Set(String::NewSymbol("console"), consoleObject);
+    globalContext->Set(NanNew<String>("console"), consoleObject);
 }
 
 void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Object> cloneObject)
@@ -89,10 +89,10 @@ void ThreadIsolate::CloneGlobalContext(Handle<Object> sourceObject, Handle<Objec
 #endif
     
     // copy global properties
-    cloneObject->Set(String::NewSymbol("global"), sourceObject->Get(String::NewSymbol("global")));
-    cloneObject->Set(String::NewSymbol("console"), sourceObject->Get(String::NewSymbol("console")));
-    cloneObject->Set(String::NewSymbol("process"), sourceObject->Get(String::NewSymbol("process")));
-    cloneObject->Set(String::NewSymbol("require"), sourceObject->Get(String::NewSymbol("require")));
+    cloneObject->Set(NanNew<String>("global"), sourceObject->Get(NanNew<String>("global")));
+    cloneObject->Set(NanNew<String>("console"), sourceObject->Get(NanNew<String>("console")));
+    cloneObject->Set(NanNew<String>("process"), sourceObject->Get(NanNew<String>("process")));
+    cloneObject->Set(NanNew<String>("require"), sourceObject->Get(NanNew<String>("require")));
 }
 
 void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const FileInfo* fileInfo)
@@ -105,10 +105,10 @@ void ThreadIsolate::CreateModuleContext(Handle<Object> contextObject, const File
 #endif
 
     // create the module/exports within context
-    Handle<Object> moduleObject = Object::New();
-    moduleObject->Set(String::NewSymbol("exports"), Object::New());
-    contextObject->Set(String::NewSymbol("module"), moduleObject);
-    contextObject->Set(String::NewSymbol("exports"), moduleObject->Get(String::NewSymbol("exports"))->ToObject());
+    Handle<Object> moduleObject = NanNew<Object>();
+    moduleObject->Set(NanNew<String>("exports"), NanNew<Object>());
+    contextObject->Set(NanNew<String>("module"), moduleObject);
+    contextObject->Set(NanNew<String>("exports"), moduleObject->Get(NanNew<String>("exports"))->ToObject());
 
     // copy file properties
     if(fileInfo != NULL)
@@ -127,6 +127,6 @@ void ThreadIsolate::UpdateContextFileGlobals(Handle<Object> contextObject, const
 #endif
 
     // set the file properites on the context
-    contextObject->Set(String::NewSymbol("__dirname"), String::New(fileInfo->folderPath));
-    contextObject->Set(String::NewSymbol("__filename"), String::New(fileInfo->fullPath));
+    contextObject->Set(NanNew<String>("__dirname"), NanNew<String>(fileInfo->folderPath));
+    contextObject->Set(NanNew<String>("__filename"), NanNew<String>(fileInfo->fullPath));
 }

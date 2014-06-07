@@ -20,14 +20,14 @@ void NodeThreadsFactory::Init()
     NanScope();
 
     // prepare the constructor function template
-    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(NodeThreads::New);
-    constructorTemplate->SetClassName(String::NewSymbol("NodeThread"));
+    Local<FunctionTemplate> constructorTemplate = NanNew<FunctionTemplate>(NodeThreads::New);
+    constructorTemplate->SetClassName(NanNew<String>("NodeThread"));
     constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     // set accessors for read-only properties
     // http://v8.googlecode.com/svn/trunk/test/cctest/test-accessors.cc
     constructorTemplate->InstanceTemplate()->SetAccessor(
-        String::NewSymbol("threadPoolKey"),
+        NanNew<String>("threadPoolKey"),
         NodeThreads::GetThreadPoolKey,
         0,
         Handle<Value>(),
@@ -35,7 +35,7 @@ void NodeThreadsFactory::Init()
         v8::ReadOnly);
 
     constructorTemplate->InstanceTemplate()->SetAccessor(
-        String::NewSymbol("numThreads"),
+        NanNew<String>("numThreads"),
         NodeThreads::GetNumThreads,
         0,
         Handle<Value>(),
@@ -43,14 +43,14 @@ void NodeThreadsFactory::Init()
         v8::ReadOnly);
 
     // inherit from event emitter
-    Local<Function> inheritsFunction = NanPersistentToLocal(
-        NTEnvironment::Util)->Get(String::NewSymbol("inherits")).As<Function>();
+    Local<Function> inheritsFunction = NanNew(
+        NTEnvironment::Util)->Get(NanNew<String>("inherits")).As<Function>();
 
     Local<Value> inheritArgs[] = { 
         constructorTemplate->GetFunction(),
-        NanPersistentToLocal(NTEnvironment::EventEmitter)
+        NanNew(NTEnvironment::EventEmitter)
     };
-    inheritsFunction->Call(NanPersistentToLocal(NTEnvironment::Module), 2, inheritArgs);
+    inheritsFunction->Call(NanNew(NTEnvironment::Module), 2, inheritArgs);
 
     // expose the constructor
     NanAssignPersistent(Function, NodeThreads::Constructor, constructorTemplate->GetFunction());
@@ -84,7 +84,7 @@ NAN_METHOD(NodeThreadsFactory::CreateInstance)
     }
 
     // create instance
-    Local<Object> newInstance = NanPersistentToLocal(NodeThreads::Constructor)->NewInstance(argc, argv);
+    Local<Object> newInstance = NanNew(NodeThreads::Constructor)->NewInstance(argc, argv);
 
     // add the node threads instance to the hash map for lookup next time
     NodeThreads *nodeThread = node::ObjectWrap::Unwrap<NodeThreads>(newInstance);
