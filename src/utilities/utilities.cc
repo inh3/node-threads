@@ -44,6 +44,8 @@ Handle<Value> Utilities::CompileScriptSource(
     Handle<String> scriptSource,
     const char* scriptResourceName)
 {
+    NanEscapableScope();
+
     TryCatch tryCatch;
 
     Handle<Value> scriptResult;
@@ -80,7 +82,7 @@ Handle<Value> Utilities::CompileScriptSource(
     // check for exception on compile
     if(compiledScript.IsEmpty() || tryCatch.HasCaught())
     {
-        return ErrorHandling::HandleException(&tryCatch);
+        return NanEscapeScope(ErrorHandling::HandleException(&tryCatch));
     }
     else
     {
@@ -89,9 +91,9 @@ Handle<Value> Utilities::CompileScriptSource(
         // check that running script didn't throw errors
         if(scriptResult.IsEmpty() || tryCatch.HasCaught())
         {
-            return ErrorHandling::HandleException(&tryCatch);
+            return NanEscapeScope(ErrorHandling::HandleException(&tryCatch));
         }
     }
 
-    return scriptResult;
+    return NanEscapeScope(scriptResult);
 }

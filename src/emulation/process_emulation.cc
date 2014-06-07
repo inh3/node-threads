@@ -44,6 +44,8 @@ void Process::Initialize()
 
 Handle<Object> Process::GetIsolateProcess()
 {
+    NanEscapableScope();
+
     Handle<Object> processObject = NanNew<Object>();
 
     // set stdout.write
@@ -86,7 +88,7 @@ Handle<Object> Process::GetIsolateProcess()
         v8::PROHIBITS_OVERWRITING,
         v8::ReadOnly);
 
-    return processObject;
+    return NanEscapeScope(processObject);
 }
 
 // node -----------------------------------------------------------------------

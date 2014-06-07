@@ -5,6 +5,8 @@
 // https://code.google.com/p/v8/source/browse/trunk/samples/shell.cc
 Handle<Object> ErrorHandling::HandleException(TryCatch* tryCatch)
 {
+    NanEscapableScope();
+
     // exception object to return
     Handle<Object> exceptionObject = NanNew<Object>();
 
@@ -37,5 +39,5 @@ Handle<Object> ErrorHandling::HandleException(TryCatch* tryCatch)
     }
 
     exceptionObject->SetHiddenValue(NanNew<String>("exception"), NanTrue());
-    return exceptionObject;
+    return NanEscapeScope(exceptionObject);
 }
