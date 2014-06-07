@@ -33,7 +33,7 @@ NAN_METHOD(GetThreadPool)
        (args.Length() == 1 && args[0]->IsString()))
     {
         // get reference to factory method
-        Local<FunctionTemplate> instanceTemplate = FunctionTemplate::New(NodeThreadsFactory::CreateInstance);
+        Local<FunctionTemplate> instanceTemplate = NanNew<FunctionTemplate>(NodeThreadsFactory::CreateInstance);
         Local<Function> instanceFunction = instanceTemplate->GetFunction();
 
         // create a new instance with parameters passed in
@@ -44,7 +44,7 @@ NAN_METHOD(GetThreadPool)
         NanReturnValue(newInstance);
     }
 
-    ThrowException(Exception::TypeError(String::New("Invalid parameter(s) passed to 'createThreadPool(...)'\n")));
+    NanThrowTypeError("Invalid parameter(s) passed to 'createThreadPool(...)'\n");
     NanReturnUndefined();
 }
 
@@ -65,7 +65,7 @@ NAN_METHOD(DeleteThreadPool)
     if(args.Length() == 1 && args[0]->IsString())
     {
         // get reference to factory method
-        Local<FunctionTemplate> destroyTemplate = FunctionTemplate::New(NodeThreadsFactory::DestroyInstance);
+        Local<FunctionTemplate> destroyTemplate = NanNew<FunctionTemplate>(NodeThreadsFactory::DestroyInstance);
         Local<Function> destroyFunction = destroyTemplate->GetFunction();
 
         // create a new instance with parameters passed in
@@ -75,7 +75,7 @@ NAN_METHOD(DeleteThreadPool)
         NanReturnValue(threadPoolDestroyed);
     }
 
-    ThrowException(Exception::TypeError(String::New("Invalid parameter passed to 'deleteThreadPool(...)'\n")));
+    NanThrowTypeError("Invalid parameter passed to 'deleteThreadPool(...)'\n");
     NanReturnUndefined();
 }
 
@@ -95,15 +95,15 @@ NAN_METHOD(SubStack)
     NodeThreadsFactory::Init();
     WebWorker::Init();
 
-    Local<Object> nodeThreadsModule = Object::New();
-    nodeThreadsModule->Set(NanSymbol("getThreadPool"),
-        FunctionTemplate::New(GetThreadPool)->GetFunction());
+    Local<Object> nodeThreadsModule = NanNew<Object>();
+    nodeThreadsModule->Set(NanNew<String>("getThreadPool"),
+        NanNew<FunctionTemplate>(GetThreadPool)->GetFunction());
 
-    nodeThreadsModule->Set(NanSymbol("deleteThreadPool"),
-        FunctionTemplate::New(DeleteThreadPool)->GetFunction());
+    nodeThreadsModule->Set(NanNew<String>("deleteThreadPool"),
+        NanNew<FunctionTemplate>(DeleteThreadPool)->GetFunction());
 
-    nodeThreadsModule->Set(NanSymbol("Worker"),
-        NanPersistentToLocal(WebWorker::Constructor));
+    nodeThreadsModule->Set(NanNew<String>("Worker"),
+        NanNew(WebWorker::Constructor));
 
     NanReturnValue(nodeThreadsModule);
 }
@@ -111,17 +111,15 @@ NAN_METHOD(SubStack)
 void init(Handle<Object> exports, Handle<Object> module)
 {
     NanAssignPersistent(
-        Object,
         NTEnvironment::Exports,
         exports);
 
     NanAssignPersistent(
-        Object,
         NTEnvironment::Module,
         module);
 
-    module->Set(String::NewSymbol("exports"),
-        FunctionTemplate::New(SubStack)->GetFunction());
+    module->Set(NanNew<String>("exports"),
+        NanNew<FunctionTemplate>(SubStack)->GetFunction());
 }
 
 NODE_MODULE(node_threads, init);

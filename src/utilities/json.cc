@@ -15,17 +15,12 @@
 
 char* JsonUtility::Stringify(Handle<Value> valueHandle)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope handleScope(isolate);
-#else
-    HandleScope handleScope;
-#endif
+    NanScope();
 
     // get reference to JSON object
-    Handle<Object> contextObject = Context::GetCurrent()->Global();
-    Handle<Object> jsonObject = contextObject->Get(v8::NanNew<String>("JSON"))->ToObject();
-    Handle<Function> stringifyFunc = jsonObject->Get(v8::NanNew<String>("stringify")).As<Function>();
+    Handle<Object> contextObject = NanGetCurrentContext()->Global();
+    Handle<Object> jsonObject = contextObject->Get(NanNew<String>("JSON"))->ToObject();
+    Handle<Function> stringifyFunc = jsonObject->Get(NanNew<String>("stringify")).As<Function>();
 
     // execute stringify
     Handle<Value> stringifyResult = stringifyFunc->Call(jsonObject, 1, &(valueHandle));
@@ -50,27 +45,22 @@ char* JsonUtility::Stringify(Handle<Value> valueHandle)
 
 Handle<Value> JsonUtility::Parse(char* objectString)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope handleScope(isolate);
-#else
-    HandleScope handleScope;
-#endif
+    NanEscapableScope();
 
     // short circuit if bad object
     if(objectString == NULL)
     {
-        return handleScope.Close(Undefined());
+        return NanEscapeScope(NanUndefined());
     }
 
     // get reference to JSON object
-    Handle<Object> contextObject = Context::GetCurrent()->Global();
-    Handle<Object> jsonObject = contextObject->Get(v8::NanNew<String>("JSON"))->ToObject();
-    Handle<Function> parseFunc = jsonObject->Get(v8::NanNew<String>("parse")).As<Function>();
+    Handle<Object> contextObject = NanGetCurrentContext()->Global();
+    Handle<Object> jsonObject = contextObject->Get(NanNew<String>("JSON"))->ToObject();
+    Handle<Function> parseFunc = jsonObject->Get(NanNew<String>("parse")).As<Function>();
 
     // execute parse
     Handle<Value> jsonString = NanNew<String>(objectString);
     Local<Value> valueHandle = parseFunc->Call(jsonObject, 1, &jsonString);
 
-    return handleScope.Close(valueHandle);
+    return NanEscapeScope(valueHandle);
 }

@@ -12,6 +12,8 @@
 #include "utilities.h"
 #include "nt-environment.h"
 
+#include "nan-extra.h"
+
 void Require::InitializePerIsolate()
 {
     string modulePath;
@@ -43,24 +45,19 @@ void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileIn
     Isolate* isolate = Isolate::GetCurrent();
 
     // get reference to thread context for this isolate
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
+    thread_context_t *threadContext = (thread_context_t*)IsolateGetData(isolate);
 
-    // Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(isolate);
-    Handle<Context> moduleContext = Context::New(isolate);
-    Handle<Context> isolateContext = isolate->GetCurrentContext();
-#else
-    HandleScope scope;
-    Handle<Context> moduleContext = Context::New();
-    Handle<Context> isolateContext = Context::GetCurrent();
-#endif
+    NanScope();
+
+    // get handles to module context and the isolate context
+    Handle<Context> moduleContext = NanNewContextHandle();
+    Handle<Context> isolateContext = NanGetCurrentContext();
 
     // set the security token to access calling context properties within new context
     moduleContext->SetSecurityToken(isolateContext->GetSecurityToken());
 
     // enter module context scope
-    Context::Scope moduleScope(moduleContext);
+    moduleContext->Enter();
 
     // get reference to current context's object
     Handle<Object> contextObject = moduleContext->Global();
@@ -72,10 +69,19 @@ void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileIn
     ThreadIsolate::CreateModuleContext(contextObject, nativeFileInfo);
 
     // run the script to get the module object
-    Handle<Script> moduleScript = Script::New(
+    ScriptOrigin scriptOrigin(NanNew<String>(moduleName));
+
+    #if NODE_VERSION_AT_LEAST(0, 11, 13)
+    Handle<UnboundScript> moduleScript = NanNew<NanUnboundScript>(
         NanNew<String>(nativeFileInfo->FileContents()),
-        moduleName);
-    moduleScript->Run();
+        scriptOrigin);
+    #else
+    Handle<Script> moduleScript = NanNew<Script>(
+        NanNew<String>(nativeFileInfo->FileContents()),
+        scriptOrigin);
+    #endif
+    NanRunScript(moduleScript);
+
     Handle<Object> moduleObject = contextObject->Get(NanNew<String>("module"))->ToObject();
 
     // create object template in order to use object wrap
@@ -96,6 +102,9 @@ void Require::LoadNativeModule(Handle<String> moduleName, FileInfo* nativeFileIn
     // add to the thread context for later lookup
     String::Utf8Value moduleNameStr(moduleName);
     threadContext->native_modules->insert(make_pair(*moduleNameStr, moduleWrap));
+
+    // exit module context scope
+    moduleContext->Exit();
 }
 
 // node -----------------------------------------------------------------------
@@ -106,7 +115,7 @@ NAN_METHOD(Require::RequireMethod)
     Isolate* isolate = Isolate::GetCurrent();
 
     // get reference to thread context for this isolate
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
+    thread_context_t *threadContext = (thread_context_t*)IsolateGetData(isolate);
 
 #if (NODE_MODULE_VERSION > 0x000B)
     HandleScope scope(isolate);

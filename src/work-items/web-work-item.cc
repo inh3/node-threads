@@ -9,6 +9,8 @@
 #include "error-handling.h"
 #include "utilities.h"
 
+#include "nan-extra.h"
+
 WebWorkItem::WebWorkItem(
     Handle<Object> webWorker,
     char* eventObject,
@@ -23,11 +25,7 @@ WebWorkItem::WebWorkItem(
     _WorkerScript = workerScript;
     
     Handle<Object> workOptions = NanNew<Object>();
-#if (NODE_MODULE_VERSION > 0x000B)
-    _WorkOptions.Reset(Isolate::GetCurrent(), workOptions);
-#else
-    _WorkOptions = Persistent<Object>::New(workOptions);
-#endif
+    NanAssignPersistent(_WorkOptions, workOptions);
 }
 
 WebWorkItem::~WebWorkItem()
@@ -44,14 +42,10 @@ void WebWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
     Isolate* isolate = Isolate::GetCurrent();
 
     // get reference to web worker
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
+    thread_context_t *threadContext = (thread_context_t*)IsolateGetData(isolate);
     WebWorker* webWorker = (WebWorker*)threadContext->nodeThreads;
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
     //printf("Worker Script:\n%s\n", _WorkerScript);
     //printf("Event Object:\n%s\n", _EventObject);
@@ -74,32 +68,27 @@ void WebWorkItem::ProcessWorkerScript(Handle<Object> contextObject)
 {
     Isolate* isolate = Isolate::GetCurrent();
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
     // get reference to web worker
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
+    thread_context_t *threadContext = (thread_context_t*)IsolateGetData(isolate);
     WebWorker* webWorker = (WebWorker*)threadContext->nodeThreads;
 
     CreateWorkerContext();
     StoreHiddenReference();
 
-    Handle<Script> workerScript = Script::New(NanNew<String>(_WorkerScript));
-        workerScript->Run();
+    #if NODE_VERSION_AT_LEAST(0, 11, 13)
+    Handle<UnboundScript> workerScript = NanNew<NanUnboundScript>(NanNew<String>(_WorkerScript));
+    #else
+    Handle<Script> workerScript = NanNew<Script>(NanNew<String>(_WorkerScript));
+    #endif
+    NanRunScript(workerScript);
 
-    //Utilities::PrintObjectProperties(Context::GetCurrent()->Global());
+    //Utilities::PrintObjectProperties(NanGetCurrentContext()->Global());
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    webWorker->_MessageFunction.Reset(
-        Isolate::GetCurrent(),
+    NanAssignPersistent(
+        webWorker->_MessageFunction,
         contextObject->Get(NanNew<String>("onmessage")).As<Function>());
-#else
-    webWorker->_MessageFunction = Persistent<Function>::New(
-        contextObject->Get(NanNew<String>("onmessage")).As<Function>());
-#endif
 }
 
 void WebWorkItem::ExecuteWorkerScript()
@@ -111,21 +100,12 @@ void WebWorkItem::ExecuteWorkerScript()
     Isolate* isolate = Isolate::GetCurrent();
 
     // get reference to web worker
-    thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
+    thread_context_t *threadContext = (thread_context_t*)IsolateGetData(isolate);
     WebWorker* webWorker = (WebWorker*)threadContext->nodeThreads;
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(isolate);
+    NanScope();
 
-    Local<Function> messageFunction = Local<Function>::New(
-        Isolate::GetCurrent(),
-        webWorker->_MessageFunction);
-#else
-    HandleScope scope;
-
-    Local<Function> messageFunction = Local<Function>::New(
-        webWorker->_MessageFunction);
-#endif
+    Local<Function> messageFunction = NanNew(webWorker->_MessageFunction);
 
     TryCatch tryCatch;
 
@@ -133,7 +113,7 @@ void WebWorkItem::ExecuteWorkerScript()
 
     Handle<Value> messageArgs[] = { eventHandle };
     messageFunction.As<Function>()->Call(
-            Context::GetCurrent()->Global(), 1, messageArgs);
+            NanGetCurrentContext()->Global(), 1, messageArgs);
 
     if(tryCatch.HasCaught())
     {
@@ -148,12 +128,7 @@ void WebWorkItem::ExecuteWorkerScript()
 
 void WebWorkItem::CreateWorkerContext()
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
     Handle<Function> postMessage = NanNew<FunctionTemplate>(
         WebWorkItem::PostMessage)->GetFunction();
@@ -162,10 +137,10 @@ void WebWorkItem::CreateWorkerContext()
     Handle<Function> close = NanNew<FunctionTemplate>(
         WebWorkItem::Close)->GetFunction();
 
-    Handle<Object> contextObject = Context::GetCurrent()->Global();
+    Handle<Object> contextObject = NanGetCurrentContext()->Global();
     
     contextObject->Set(NanNew<String>("self"), contextObject);
-    contextObject->Set(NanNew<String>("onmessage"), Undefined());
+    contextObject->Set(NanNew<String>("onmessage"), NanUndefined());
     contextObject->Set(NanNew<String>("postMessage"), postMessage);
     contextObject->Set(NanNew<String>("addEventListener"), addEventListener);
     contextObject->Set(NanNew<String>("close"), close);
@@ -173,20 +148,15 @@ void WebWorkItem::CreateWorkerContext()
 
 void WebWorkItem::StoreHiddenReference()
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
-    Handle<Object> contextObject = Context::GetCurrent()->Global();
+    Handle<Object> contextObject = NanGetCurrentContext()->Global();
 
     // store reference to this web work item
-    Handle<ObjectTemplate> objectTemplate = ObjectTemplate::New();
+    Handle<ObjectTemplate> objectTemplate = NanNew<ObjectTemplate>();
     objectTemplate->SetInternalFieldCount(1);
     Local<Object> webWorkItemObject = objectTemplate->NewInstance();
-    webWorkItemObject->Set(NanNew<String>("Test"), Number::New(10));
+    webWorkItemObject->Set(NanNew<String>("Test"), NanNew<Number>(10));
     NanSetInternalFieldPointer(webWorkItemObject, 0, (void*)this);
 
     // store the reference object as a hidden field
@@ -200,26 +170,17 @@ NAN_METHOD(WebWorkItem::AddEventListener)
 {
     Isolate* isolate = Isolate::GetCurrent();
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
     if(args.Length() == 2 && args[1]->IsFunction())
     {
         // get reference to web worker
-        thread_context_t *threadContext = (thread_context_t*)isolate->GetData();
+        thread_context_t *threadContext = (thread_context_t*)IsolateGetData(isolate);
         WebWorker* webWorker = (WebWorker*)threadContext->nodeThreads;
 
-        #if (NODE_MODULE_VERSION > 0x000B)
-            webWorker->_MessageFunction.Reset(
-                Isolate::GetCurrent(),
-                args[1].As<Function>());
-        #else
-            webWorker->_MessageFunction = Persistent<Function>::New(
-                args[1].As<Function>());
-        #endif
+        NanAssignPersistent(
+            webWorker->_MessageFunction,
+            args[1].As<Function>());
     }
 
     NanReturnValue(args.This());
@@ -227,14 +188,9 @@ NAN_METHOD(WebWorkItem::AddEventListener)
 
 NAN_METHOD(WebWorkItem::PostMessage)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
-    Handle<Object> contextObject = Context::GetCurrent()->Global();
+    Handle<Object> contextObject = NanGetCurrentContext()->Global();
     Handle<Object> workItemObject = contextObject->GetHiddenValue(
         NanNew<String>("WebWorkItem")).As<Object>();
     WebWorkItem* webWorkItem = (WebWorkItem*)NanGetInternalFieldPointer(workItemObject, 0);
@@ -246,7 +202,7 @@ NAN_METHOD(WebWorkItem::PostMessage)
     }
     else
     {
-        webWorkItem->_WorkResult = JsonUtility::Stringify(Null());
+        webWorkItem->_WorkResult = JsonUtility::Stringify(NanNull());
     }
 
     NanReturnValue(args.This());
@@ -254,15 +210,10 @@ NAN_METHOD(WebWorkItem::PostMessage)
 
 NAN_METHOD(WebWorkItem::Close)
 {
-#if (NODE_MODULE_VERSION > 0x000B)
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-#else
-    HandleScope scope;
-#endif
+    NanScope();
 
     // http://bespin.cz/~ondras/html/classv8_1_1V8.html
     V8::TerminateExecution(Isolate::GetCurrent());
 
-    NanReturnValue(Undefined());
+    NanReturnValue(NanUndefined());
 }

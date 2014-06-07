@@ -53,7 +53,9 @@ void NodeThreadsFactory::Init()
     inheritsFunction->Call(NanNew(NTEnvironment::Module), 2, inheritArgs);
 
     // expose the constructor
-    NanAssignPersistent(Function, NodeThreads::Constructor, constructorTemplate->GetFunction());
+    NanAssignPersistent(
+        NodeThreads::Constructor,
+        constructorTemplate->GetFunction());
 }
 
 NAN_METHOD(NodeThreadsFactory::CreateInstance)
@@ -114,8 +116,8 @@ NAN_METHOD(NodeThreadsFactory::DestroyInstance)
         NodeThreadsFactory::_NodeThreadMap.erase(nodeThreadKey);
         nodeThread->Destroy();
         nodeThread->Unref();
-        NanReturnValue(Boolean::New(true));
+        NanReturnValue(NanTrue());
     }
 
-    NanReturnValue(Boolean::New(false));
+    NanReturnValue(NanFalse());
 }

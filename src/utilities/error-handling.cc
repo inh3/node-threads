@@ -22,7 +22,10 @@ Handle<Object> ErrorHandling::HandleException(TryCatch* tryCatch)
         exceptionObject->Set(NanNew<String>("resourceName"), exceptionMessage->GetScriptResourceName());
         exceptionObject->Set(NanNew<String>("lineNum"), NanNew<Number>(exceptionMessage->GetLineNumber()));
         exceptionObject->Set(NanNew<String>("sourceLine"), exceptionMessage->GetSourceLine());
+        // missing reference with 0.11.13
+        #if !(NODE_VERSION_AT_LEAST(0, 11, 13))
         exceptionObject->Set(NanNew<String>("scriptData"), exceptionMessage->GetScriptData());
+        #endif
         if(!tryCatch->StackTrace().IsEmpty())
         {
             exceptionObject->Set(NanNew<String>("stackTrace"), tryCatch->StackTrace());

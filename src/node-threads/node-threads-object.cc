@@ -203,7 +203,7 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
     
     if(funcStrHandle.IsEmpty())
     {
-        ThrowException(Exception::TypeError(NanNew<String>("Invalid parameter(s) passed to 'executeFunction(...)'\n")));
+        NanThrowTypeError("Invalid parameter(s) passed to 'executeFunction(...)'\n");
         NanReturnUndefined();
     }
     else
@@ -213,7 +213,7 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         String::Utf8Value funcStrValue(funcStrHandle);
         nodeThread->QueueFunctionWorkItem(
             *funcStrValue,
-            (args.Length() >= 2 ? args[1] : (Handle<Value>)Null()),
+            (args.Length() >= 2 ? args[1] : NanNull()),
             args[2].As<Function>(),
             workOptions,
             calleeObject,
@@ -227,25 +227,16 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
 
 Handle<Value> NodeThreads::GetCalleeInfo()
 {
-    NanScope();
+    NanEscapableScope();
 
-#if (NODE_MODULE_VERSION > 0x000B)
-    Local<Function> strackTraceFunction = Local<Function>::New(
-        Isolate::GetCurrent(),
-        NTEnvironment::CalleeByStackTrace);
-    Local<Value> pathModule = Local<Object>::New(
-        Isolate::GetCurrent(),
-        NTEnvironment::Path);
-#else
-    Local<Function> strackTraceFunction = Local<Function>::New(NTEnvironment::CalleeByStackTrace);
-    Local<Value> pathModule = Local<Object>::New(NTEnvironment::Path);
-#endif
+    Local<Function> strackTraceFunction = NanNew(NTEnvironment::CalleeByStackTrace);
+    Local<Value> pathModule = NanNew(NTEnvironment::Path);
 
     // get the __filename and __dirname properties
     Handle<Value> calleeObject = strackTraceFunction->Call(
-        Context::GetCurrent()->Global(),
+        NanGetCurrentContext()->Global(),
         1,
         &pathModule);
 
-    return scope.Close(calleeObject);
+    return NanEscapeScope(calleeObject);
 }

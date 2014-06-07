@@ -5,6 +5,7 @@
 #include <uv.h>
 #include <v8.h>
 using namespace v8;
+#include <node_version.h>
 
 #include "nan.h"
 
@@ -51,7 +52,11 @@ class Thread
         static void         ThreadPostInit(void* threadContext);
         static void         ThreadDestroy(void* threadContext);
 
+        #if NODE_VERSION_AT_LEAST(0, 11, 13)
+        static void         AsyncCallback(uv_async_t* handle);
+        #else
         static void         AsyncCallback(uv_async_t* handle, int status);
+        #endif
 
     private:
 

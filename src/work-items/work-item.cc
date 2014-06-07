@@ -46,11 +46,8 @@ WorkItem::~WorkItem()
         free(_Exception);
     }
 
-    _WorkOptions.Dispose();
-    _WorkOptions.Clear();
-
-    _ThreadPoolObject.Dispose();
-    _ThreadPoolObject.Clear();
+    NanDisposePersistent(_WorkOptions);
+    NanDisposePersistent(_ThreadPoolObject);
 }
 
 void WorkItem::AsyncCallback(
@@ -116,19 +113,17 @@ void* WorkItem::WorkFunction(
         // enter the isolate
         isolate->Enter();
 
-// Node 0.11+ (0.11.3 and below won't compile with these)
-#if (NODE_MODULE_VERSION > 0x000B)
-        HandleScope handleScope(isolate);
-        Context::Scope contextScope(isolate, threadContext->isolate_context);
-        Handle<Object> contextObject = isolate->GetCurrentContext()->Global();
-#else
-        HandleScope handleScope;
-        Context::Scope contextScope(threadContext->isolate_context);
-        Handle<Object> contextObject = Context::GetCurrent()->Global();
-#endif
+        NanScope();
+
+        Handle<Context> isolateContext = NanNew(threadContext->isolate_context);
+        isolateContext->Enter();
+
+        Handle<Object> contextObject = NanGetCurrentContext()->Global();
 
         workItem->InstanceWorkFunction(contextObject);
-}
+
+        isolateContext->Exit();
+    }
 
     // leave the isolate
     isolate->Exit();

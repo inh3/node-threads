@@ -47,29 +47,44 @@ Handle<Value> Utilities::CompileScriptSource(
     TryCatch tryCatch;
 
     Handle<Value> scriptResult;
-    Handle<UnboundScript> unboundScript;
+
+    #if NODE_VERSION_AT_LEAST(0, 11, 13)
+    Handle<UnboundScript> compiledScript;
+    #else
+    Handle<Script> compiledScript;
+    #endif
 
     // create compiled script
     if(scriptResourceName != NULL)
     {
         ScriptOrigin scriptOrigin(NanNew<String>(scriptResourceName));
-        unboundScript = NanNew<NanUnboundScript>(
+        #if NODE_VERSION_AT_LEAST(0, 11, 13)
+        compiledScript = NanNew<UnboundScript>(
             NanNew<String>(scriptSource),
             scriptOrigin);
+        #else
+        compiledScript = NanNew<Script>(
+            NanNew<String>(scriptSource),
+            scriptOrigin);
+        #endif
     }
     else
     {
-        unboundScript = NanNew<NanUnboundScript>(NanNew<String>(scriptSource));
+        #if NODE_VERSION_AT_LEAST(0, 11, 13)
+        compiledScript = NanNew<UnboundScript>(NanNew<String>(scriptSource));
+        #else
+        compiledScript = NanNew<Script>(NanNew<String>(scriptSource));
+        #endif
     }
 
     // check for exception on compile
-    if(unboundScript.IsEmpty() || tryCatch.HasCaught())
+    if(compiledScript.IsEmpty() || tryCatch.HasCaught())
     {
         return ErrorHandling::HandleException(&tryCatch);
     }
     else
     {
-        scriptResult = NanRunScript(unboundScript);
+        scriptResult = NanRunScript(compiledScript);
 
         // check that running script didn't throw errors
         if(scriptResult.IsEmpty() || tryCatch.HasCaught())

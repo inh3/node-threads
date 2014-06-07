@@ -143,7 +143,9 @@ NAN_SETTER(WebWorker::OnMessageSet)
     NanScope();
     WebWorker* webWorker = ObjectWrap::Unwrap<WebWorker>(args.This());
     Local<Function> onMessage = value.As<Function>();
-    NanAssignPersistent(Function, webWorker->_OnMessage, onMessage);
+    NanAssignPersistent(
+        webWorker->_OnMessage,
+        onMessage);
 
     // remove existing listener
     Handle<Function> removeAllFunc = args.This()->Get(
@@ -166,6 +168,7 @@ NAN_METHOD(WebWorker::PostMessage)
 
     Handle<Object> eventObject = NanNew<Object>();
 
+    #if NODE_VERSION_AT_LEAST(0, 11, 13)
     if(args[0]->IsArrayBufferView() || args[0]->IsArrayBuffer())
     {
         printf("\n**** GOT ARRAY BUFFER ****\n");
@@ -186,8 +189,13 @@ NAN_METHOD(WebWorker::PostMessage)
     {
         eventObject->Set(
             NanNew<String>("data"),
-            NanNewLocal<Object>(args[0].As<Object>()));
+            args[0].As<Object>());
     }
+    #else
+    eventObject->Set(
+        NanNew<String>("data"),
+        args[0].As<Object>());
+    #endif
 
     char* eventStringified = JsonUtility::Stringify(eventObject);
 
@@ -218,5 +226,5 @@ NAN_METHOD(WebWorker::AddEventListener)
 NAN_METHOD(WebWorker::Terminate)
 {
     NanScope();
-    NanReturnValue(Undefined());
+    NanReturnValue(NanUndefined());
 }

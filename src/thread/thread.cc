@@ -7,9 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// node
-#include <node_version.h>
-
 // custom
 #include "web-worker.h"
 #include "thread-isolate.h"
@@ -17,6 +14,8 @@
 #include "work-item.h"
 #include "json.h"
 #include "utilities.h"
+
+#include "nan-extra.h"
 
 // callback manager
 static CallbackManager* callbackManager = &(CallbackManager::GetInstance());
@@ -45,7 +44,7 @@ void* Thread::ThreadInit(void* initData)
     threadContext->nodeThreads = (NodeThreads*)initData;
 
     // store reference to thread context within isolate
-    threadContext->thread_isolate->SetData((void*)threadContext);
+    IsolateSetData(threadContext->thread_isolate, threadContext);
 
     return (void*)threadContext;
 }
@@ -91,11 +90,9 @@ void Thread::ThreadDestroy(void* threadContext)
             PersistentWrap* pWrap = it->second;
             pWrap->Unref();
 #if (NODE_MODULE_VERSION > 0x000B)
-            pWrap->persistent().Dispose();
-            pWrap->persistent().Clear();
+            NanDisposePersistent(pWrap->persistent());
 #else
-            pWrap->handle_.Dispose();
-            pWrap->handle_.Clear();
+            NanDisposePersistent(pWrap->handle_);
 #endif
             delete pWrap;
         }
@@ -106,12 +103,11 @@ void Thread::ThreadDestroy(void* threadContext)
         if(nodeThreads->IsWebWorker())
         {
             WebWorker* webWorker = (WebWorker*)nodeThreads;
-            webWorker->_MessageFunction.Dispose();
-            webWorker->_MessageFunction.Clear();
+            NanDisposePersistent(webWorker->_MessageFunction);
         }
 
         // dispose of js context
-        thisContext->isolate_context.Dispose();
+        NanDisposePersistent(thisContext->isolate_context);
     }
 
     // exit the isolate
@@ -130,13 +126,13 @@ void Thread::ThreadDestroy(void* threadContext)
     free(thisContext);
 }
 
-void Thread::AsyncCallback(uv_async_t* handle, int status)
-{
-#if (NODE_MODULE_VERSION > 0x000B)
-    HandleScope scope(Isolate::GetCurrent());
+#if NODE_VERSION_AT_LEAST(0, 11, 13)
+void Thread::AsyncCallback(uv_async_t* handle)
 #else
-    HandleScope scope;
+void Thread::AsyncCallback(uv_async_t* handle, int status)
 #endif
+{
+    NanScope();
 
     printf("Thread::AsyncCallback\n");
 
@@ -146,24 +142,18 @@ void Thread::AsyncCallback(uv_async_t* handle, int status)
     {
         if(workItem->_AsyncShouldProcess == true)
         {
-#if (NODE_MODULE_VERSION > 0x000B)
-            Local<Object> workOptions = Local<Object>::New(
-                Isolate::GetCurrent(),
-                workItem->_WorkOptions);
-#else
-            Local<Object> workOptions = Local<Object>::New(
-                workItem->_WorkOptions);
-#endif
+            Local<Object> workOptions = NanNew(workItem->_WorkOptions);
+
             Handle<Value> exceptionHandle = JsonUtility::Parse(workItem->_Exception);
             Handle<Value> workResultHandle = JsonUtility::Parse(workItem->_WorkResult);
 
             workOptions->Set(
-                NanNew<String>("thread"), Number::New(workItem->_ThreadId));
+                NanNew<String>("thread"), NanNew<Number>(workItem->_ThreadId));
             workOptions->Set(
                 NanNew<String>("threadpool"), NanNew<String>(workItem->_ThreadPoolKey.c_str()));
 
             workItem->AsyncCallback(
-                (exceptionHandle == Undefined() ? (Handle<Value>)Null() : exceptionHandle),
+                (exceptionHandle == NanUndefined() ? (Handle<Value>)NanNull() : exceptionHandle),
                 workOptions,
                 workResultHandle);
         }

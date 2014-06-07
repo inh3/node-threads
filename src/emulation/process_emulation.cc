@@ -22,7 +22,7 @@ void Process::Initialize()
     Isolate* isolate = Isolate::GetCurrent();
     Local<Object> nodeContext = isolate->GetCurrentContext()->Global();
 #else
-    Local<Object> nodeContext = Context::GetCurrent()->Global();
+    Local<Object> nodeContext = NanGetCurrentContext()->Global();
 #endif
 
     Local<Object> processObject = nodeContext->Get(NanNew<String>("process"))->ToObject();
@@ -37,8 +37,8 @@ void Process::Initialize()
     Process::Platform.assign(*processPlatform);
 
     // store reference to stringify
-    Handle<Object> jsonObject = nodeContext->Get(v8::NanNew<String>("JSON"))->ToObject();
-    Handle<Function> stringifyFunc = jsonObject->Get(v8::NanNew<String>("stringify")).As<Function>();
+    Handle<Object> jsonObject = nodeContext->Get(NanNew<String>("JSON"))->ToObject();
+    Handle<Function> stringifyFunc = jsonObject->Get(NanNew<String>("stringify")).As<Function>();
 
     // store stringified version of 'env' object
     Handle<Value> envValue = processObject->Get(NanNew<String>("env"));
@@ -149,12 +149,12 @@ NAN_GETTER(Process::GetEnv)
     Local<Object> currentContext = isolate->GetCurrentContext()->Global();
 #else
     HandleScope scope;
-    Local<Object> currentContext = Context::GetCurrent()->Global();
+    Local<Object> currentContext = NanGetCurrentContext()->Global();
 #endif
 
     // store reference to parse
-    Handle<Object> jsonObject = currentContext->Get(v8::NanNew<String>("JSON"))->ToObject();
-    Handle<Function> parseFunc = jsonObject->Get(v8::NanNew<String>("parse")).As<Function>();
+    Handle<Object> jsonObject = currentContext->Get(NanNew<String>("JSON"))->ToObject();
+    Handle<Function> parseFunc = jsonObject->Get(NanNew<String>("parse")).As<Function>();
 
     Local<Value> jsonString = NanNew<String>(Process::Env.c_str());
 

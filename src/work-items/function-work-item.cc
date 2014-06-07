@@ -89,7 +89,7 @@ void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 
     // set work id to guid if not specified
     Handle<Value> workId = workOptions->Get(NanNew<String>("id"));
-    if(workId == Undefined() || workId.IsEmpty())
+    if(workId == NanUndefined() || workId.IsEmpty())
     {
 #if (NODE_MODULE_VERSION > 0x000B)
         Local<Function> guidFunction = Local<Function>::New(
@@ -101,7 +101,7 @@ void FunctionWorkItem::ProcessWorkOptions(Handle<Object> workOptions)
 #endif
 
         Handle<Value> guidHandle = guidFunction->Call(
-            Context::GetCurrent()->Global(),
+            NanGetCurrentContext()->Global(),
             0,
             NULL);
         workOptions->Set(NanNew<String>("id"), guidHandle);
@@ -119,8 +119,7 @@ FunctionWorkItem::~FunctionWorkItem()
     static int x = 0;
     printf("FunctionWorkItem::~FunctionWorkItem - %u\n", ++x);
 
-    _CallbackFunction.Dispose();
-    _CallbackFunction.Clear();
+    NanDisposePersistent(_CallbackFunction);
 
     free(_FunctionString);
     free(_FunctionParam);
@@ -173,13 +172,13 @@ void FunctionWorkItem::InstanceWorkFunction(Handle<Object> contextObject)
         }
         else if(!scriptResult->IsFunction())
         {
-            _WorkResult = JsonUtility::Stringify(Null());
+            _WorkResult = JsonUtility::Stringify(NanNull());
         }
         else
         {
             Handle<Value> argv[1] = { JsonUtility::Parse(_FunctionParam) };
             Handle<Value> functionResult = scriptResult.As<Function>()->Call(
-                Context::GetCurrent()->Global(), 1, argv);
+                NanGetCurrentContext()->Global(), 1, argv);
 
             if(tryCatch.HasCaught())
             {
@@ -218,14 +217,14 @@ void FunctionWorkItem::AsyncCallback(
 #endif
 
     if(!callbackFunction.IsEmpty() &&
-        callbackFunction != Null() &&
-        callbackFunction != Undefined())
+        callbackFunction != NanNull() &&
+        callbackFunction != NanUndefined())
     {
         //create arguments array
         const unsigned argc = 3;
         Handle<Value> argv[argc] = { 
             // error
-            (errorHandle == Undefined() ? (Handle<Value>)Null() : errorHandle),
+            (errorHandle == NanUndefined() ? (Handle<Value>)NanNull() : errorHandle),
             // info
             infoHandle,
             // result
