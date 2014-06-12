@@ -213,7 +213,7 @@ NAN_METHOD(NodeThreads::ExecuteFunction)
         String::Utf8Value funcStrValue(funcStrHandle);
         nodeThread->QueueFunctionWorkItem(
             *funcStrValue,
-            (args.Length() >= 2 ? args[1] : NanNull()),
+            (args.Length() >= 2 ? args[1] : (Handle<Value>)NanNull()),
             args[2].As<Function>(),
             workOptions,
             calleeObject,
